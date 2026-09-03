@@ -6,6 +6,7 @@
 
 실제 코드(데이터 파이프라인·학습·추론·제출 패키징)가 사는 Codex 작업 루트다. 대회 규칙·데이터 규격·평가 산식·
 베이스라인 코드 분석 정본은 `docs/dacon-236753-대회안내.md`를 참고한다. 이 문서는 **실행 로드맵**만 다룬다.
+세 Stage의 확정 데이터 구성과 보강 조건은 `docs/data-strategy-status.md`에서 한눈에 확인할 수 있다.
 
 Codex는 작업 시작 시 `AGENTS.md` → `CODEX_HANDOFF.md`의 안내를 따르고, 데이터·모델 관련 도메인 지식은 각각
 `docs/domain-knowledge-data.md`, `docs/domain-knowledge-model.md`를 참고한다. 두 문서의 YAML과 에이전트 호출 표현은
@@ -42,7 +43,7 @@ Kaggle 실행 절차와 실행 전후 검증 방법은 `docs/phase0-kaggle-runbo
 
 - **Stage 2 최우선 단서**: 베이스라인 학습 코드 주석에 "공개 CCD 5건"이라는 표현이 있음 — 사고 예측 연구에서 널리 쓰이는 공개 데이터셋 **Car Crash Dataset(CCD)**를 가리킬 가능성이 높음. 라이선스·이용조건·실제 라벨 스키마(충돌 시점 등)를 조사해 최우선으로 확보 시도.
 - **Stage 1(재녹화 판별)**: 데이터 구축 방침 확정(2026-09-03). CCD를 source ID 기준으로 먼저 분할한 뒤 무아레·주사율 간섭·밝기 띠·원근·초점·이중 압축 등을 무작위 합성한다. 학습에 쓰지 않은 원본 30개를 휴대전화로 각 3조건 재촬영한 약 90개는 실제 재촬영 검증 세트로 보존한다.
-- **Stage 3(거동 분석)**: 1차 후보는 `comma2k19`로 선정했다. 전체 약 100GB를 받기 전에 공식 저장소의 1분 예제 구간으로 영상↔CAN 동기화 및 10Hz 범주 라벨 변환을 검증한다. 보강 후보는 nuScenes CAN bus와 A2D2이며 상세 기록은 `DATA_SOURCES.md`를 참고한다.
+- **Stage 3(거동 분석)**: 기본 데이터는 `comma2k19`, 도시·저속·정지·회전 보강은 ZOD로 확정했다. comma2k19 1분 예제의 영상↔CAN 동기화 및 10Hz 범주 변환은 PASS했고, ZOD는 접근 신청 후 승인 대기 중이다. nuScenes와 A2D2는 라이선스 제약으로 보류한다.
 - 대회 규칙상 **법적 제한 없는 외부 데이터·사전학습 모델 사용은 허용**되지만, 2차 진출 시 출처 명시가 의무다. 데이터를 확보하는 즉시 출처·라이선스·이용조건을 기록해 둔다.
 
 → 관련 도메인 지식: `docs/domain-knowledge-data.md`
@@ -116,6 +117,9 @@ python src/label_stage2.py
 - [x] Stage1 MViTv2-S 학습·재로딩·추론 스모크 코드 작성 및 정적 계약 검사
 - [x] Stage1 모델 파이프라인 Kaggle 런타임 PASS(2 samples, CUDA, checkpoint 재로딩·출력 계약 정상)
 - [x] Stage1 휴대전화 검증용 source holdout 선택기 및 생성기 제외 옵션 구현
+- [x] Stage1 외부 보강 후보 Nexar 샘플 다운로드·재생·합성 검증 및 라이선스 확인
+- [x] Stage1·2·3 데이터 전략 확정 및 `docs/data-strategy-status.md` 문서화
+- [x] Stage3 보강 데이터 ZOD 접근 신청(승인 대기)
 - [ ] Stage2 CCD 200~300개 수동 라벨링
 
 ### 다음 작업

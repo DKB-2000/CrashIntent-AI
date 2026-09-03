@@ -90,6 +90,8 @@ crashvideo-project/                          ← Codex 작업 루트로 이 폴�
 
 ## 4. 진행 중 / 미완료 — Codex가 이어받을 것 (우선순위 순)
 
+> Stage별 확정 데이터 구성과 보강 조건의 최신 요약은 `docs/data-strategy-status.md`를 우선 참고한다.
+
 1. **[현재] Stage1 실제 데이터 구축** — 합성 생성기와 MViTv2-S 모델 파이프라인은 Kaggle 런타임 PASS했다.
    CCD 전체를 source ID 기준으로 분할해 ORIGINAL/RERECORDED 학습 세트를 생성하고, 별도 원본 30개는 휴대전화
    3조건 재촬영 검증용으로 제외한다.

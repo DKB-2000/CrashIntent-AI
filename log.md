@@ -178,3 +178,27 @@
 
 - Nexar의 positive/negative는 사고 유무 라벨이며 Stage 1의 ORIGINAL/RERECORDED와 무관하다.
 - 외부 데이터셋의 두 그룹 모두 동일하게 ORIGINAL과 합성 RERECORDED 쌍을 만들어야 데이터셋 출처가 정답 지름길이 되는 것을 막을 수 있다.
+
+## 2026-09-03 — Stage 1·2·3 데이터 방향 확정
+
+### 목표
+
+- 프로토타입 실행 전 세 Stage의 기본 데이터, 보강 데이터, 도입 조건과 우선순위를 확정한다.
+
+### 과정
+
+- Stage 1은 CCD 합성·휴대전화 holdout을 기본으로 하고 Nexar를 프로토 이후 추가학습 후보로 정했다.
+- Stage 2는 CCD exact manual labels를 중심으로 하며 Nexar 실제 충돌 영상을 선별 보강하고, DADA-2000은 조건부 후보로 두었다.
+- Stage 3는 comma2k19를 기본으로 하고 도시·저속·정지·회전 보강에 ZOD를 사용하기로 했다.
+- ZOD 접근 신청 메일을 발송했고 승인 대기 상태로 전환했다.
+- nuScenes와 A2D2 등은 기술 적합성보다 라이선스·재현성 위험을 우선해 보류했다.
+
+### 결과
+
+- `docs/data-strategy-status.md`에 Stage별 확정 구성, 진행 상태, 확장 조건과 실행 순서를 통합 기록했다.
+- 다음 우선 작업은 Stage 2 CCD 200~300개 수동 라벨링과 comma2k19 첫 청크 분포 분석이다.
+
+### 배운 점
+
+- Stage 1은 실제 재촬영 domain gap, Stage 2는 exact manual labels, Stage 3는 행동 클래스 다양성이 각각 데이터 병목이다.
+- 외부 데이터는 일괄 확대하지 않고 각 프로토타입의 실패 유형과 라이선스 검증을 통과한 경우에만 추가한다.
