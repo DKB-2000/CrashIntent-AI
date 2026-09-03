@@ -1,0 +1,6 @@
+# Copy to project.local.properties only when data lives outside this repository.
+# Relative override paths are still resolved from project.root.
+# project.root=D:/path/to/crashvideo-project
+# data.raw.dir=E:/datasets/crashvideo/data_raw
+# ccd.label.file=E:/datasets/crashvideo/ccd/Crash-1500.txt
+# ccd.video.dir=E:/datasets/crashvideo/ccd/videos/Crash-1500
