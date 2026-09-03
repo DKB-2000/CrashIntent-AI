@@ -183,7 +183,7 @@ DoTA를 통한 entry_side/evasion_space 조건부 트랙에서 남는 선택지(
 | **DAD** (Dashcam Accident Dataset) | Chan et al., ACCV 2016. Taiwan 6개 도시 대시캠 | 1,750개 영상(사고 620 + 정상 1,130), 100프레임/5초 클립, train 1,284 / test 466 | 사고 여부 + 사고 시점(ToA) 프레임 | collision_frame만 | 학술 공개, 상세 라이선스 문구 미확인 — 재확인 필요 | CCD와 함께 accident-anticipation 연구에서 가장 널리 쓰이는 원조 데이터셋. 대만 현지 대시캠이라 국내 블랙박스와 화각·화질 유사도 상대적으로 높을 가능성 |
 | **A3D** (AnAn Accident Detection) | 원래 Traffic Anomaly Detection용, East Asia 도심 대시캠. DoTA 논문이 비교 대상으로 인용(Yao et al., 같은 저자 그룹의 전작) | 1,500개 영상, temporal(시작/종료) 주석만 | 이상구간 시작/종료 — **DoTA 논문에 따르면 A3D는 "충돌이 발생한 시점"을 anomaly start로 정의**(DoTA와 다름, CCD/DAD와 유사) | collision_frame(근사)만 | 미확인 — 재확인 필요 | ego-vehicle 연루 비율 60%+ (DAD 대비 높음) |
 | **CADP** (CCTV Accident Detection) | 논문: "CADP: A Novel Dataset for CCTV Traffic Camera based Accident Analysis" | 확인 필요 | 사고 시공간 위치 | collision_frame 근사 | 미확인 | **CCTV 고정 카메라 시점** — 블랙박스(차량 탑재, 이동 시점) 영상과 화각·구도가 근본적으로 다름. 데이터 소스로서 우선순위 낮음 |
-| **Nexar Dashcam Collision Prediction Dataset** | Moura, Zhu, Zvitia (Nexar), CVPR 2025 Workshop. https://huggingface.co/datasets/nexar-ai/nexar_collision_prediction | 1,500개 영상(50% 충돌/임박 충돌, 50% 정상). 해상도 1280×720, 30fps, train ~40초/test ~10초 | `label`(충돌여부), `time_of_event`, `time_of_alert`(양성만), `light_conditions`, `weather`, `scene`, `time_to_accident`(test만) | `time_of_event` ≈ collision_frame(시간축) 근접. entry/evasion/side 없음 | 라이선스명만 "nexar-open-data-license"로 확인, **전문 미확인 — 상업적 이용/재배포 제한 여부 불명** | 실제 대시캠 원본(30fps 고해상도)이라 화질·프레임레이트가 CCD/DAD보다 우수하고 블랙박스와 가장 유사. 다만 규모가 작고(1,500개) 라이선스 전문 확인이 선행되어야 함 |
+| **Nexar Dashcam Collision Prediction Dataset** | Moura, Zhu, Zvitia (Nexar), 2025. https://huggingface.co/datasets/nexar-ai/nexar_collision_prediction | 1,500개 train 영상(50% 충돌/임박 충돌, 50% 정상). 해상도 1280×720, 30fps, 보통 약 40초 | `label`(충돌여부), `time_of_event`, `time_of_alert`(양성만), `light_conditions`, `weather`, `scene` | `time_of_event` ≈ collision_frame(시간축) 근접. entry/evasion/side 없음 | Nexar Open Data License 전문 확인 완료: 출처표시 및 고지 유지 조건으로 사용·수정·배포 허용, 데이터 자체의 영리 재판매 금지, 윤리적 사용 제한 적용 | 실제 대시캠 원본으로 Stage1 외부 source 후보 채택. Kaggle에서 positive 2개+negative 2개 개별 다운로드·재생·합성 생성 PASS, 프로토 이후 추가학습용으로 보류 |
 
 ---
 
@@ -195,9 +195,9 @@ DoTA를 통한 entry_side/evasion_space 조건부 트랙에서 남는 선택지(
 4. **라이선스 관련 미해결 사항**:
    - CCD/DAD/A3D/DoTA 모두 "저장소 코드는 MIT"이지만 "재배포된 사고 영상 자체(유튜브 원본)"의 저작권 상태는 불명확 — 비영리 연구 목적 관행으로 널리 통용되나 100% 법적으로 확정된 것은 아님. DoTA는 논문 PDF 전문 검색으로도 라이선스 관련 문구가 전혀 없음을 확인(CCD와 동일한 리스크 패턴).
    - BDD100K 파생분(CCD의 정상주행 3,000개)은 "비영리 연구 목적" 조건부 라이선스 확인됨.
-   - Nexar 데이터셋은 라이선스 전문을 아직 확인하지 못함.
+   - Nexar 데이터셋은 라이선스 전문 확인 완료. 출처표시·고지 유지, 데이터 재판매 금지, 안전·개인정보 등 윤리적 사용 제한을 준수해 사용할 수 있다.
    - → **사용자에게 이 불확실성을 명시적으로 알리고, 실제 다운로드/학습 사용 전 최종 승인을 받는 것을 권장**(CCD는 이미 이 절차를 거쳐 승인·다운로드함).
-5. **DoTA는 라벨 JSON(약 11.4MB)만 다운로드·검증했고, 55GB 이미지/영상 아카이브는 끝까지 받지 않았다.** 사용자 승인을 받아 원본 유튜브에서 20~30건 실물 검수를 시도했으나 소스 영상이 전멸해(96/96 실패) 클립을 하나도 확보하지 못했고, 이 사실 자체가 결정적 결론(트랙 종결)이 되었다. DAD/A3D/CADP/Nexar는 여전히 조사 단계다.
+5. **DoTA는 라벨 JSON(약 11.4MB)만 다운로드·검증했고, 55GB 이미지/영상 아카이브는 끝까지 받지 않았다.** 사용자 승인을 받아 원본 유튜브에서 20~30건 실물 검수를 시도했으나 소스 영상이 전멸해(96/96 실패) 클립을 하나도 확보하지 못했고, 이 사실 자체가 결정적 결론(트랙 종결)이 되었다. DAD/A3D/CADP는 여전히 조사 단계이며 Nexar는 Stage1 후보 검증을 완료했다.
 6. 모델 구현(라벨 CSV 변환 `path,t_collision` 등 베이스라인 스키마 매핑, `data/stage2/images/<ID>/frame_NNNNNN.jpg` 규격으로의 변환)은 이번 작업 범위 밖 — `crashvideo-model-expert`와 협의해 후속 진행.
 
 ## 참고 링크 (전체)
@@ -223,6 +223,22 @@ DoTA를 통한 entry_side/evasion_space 조건부 트랙에서 남는 선택지(
 - ORIGINAL 쪽도 코덱·비트레이트를 다양화해 파일 메타데이터가 정답 지름길이 되지 않게 한다.
 - 학습에 사용하지 않은 CCD 원본 30개를 휴대전화로 각 3조건 재촬영한 약 90개를 실제 재녹화 검증 세트로 보존한다.
 - 데이콘 공개 Stage1의 5개 RERECORDED 파일은 실제 기기 재촬영이 아닌 파생 예제이므로 파이프라인 참고용으로만 사용한다.
+
+### Nexar — 프로토 이후 추가학습 후보 채택(2026-09-03)
+
+- 공식 Hugging Face 저장소의 train은 실제 Nexar 대시캠 영상 1,500개이며 positive(충돌/근접사고) 750개와
+  negative(일반주행) 750개로 구성된다. Nexar의 positive/negative는 Stage1 라벨이 아니므로 양쪽 모두
+  `ORIGINAL` source로 사용하고 각 source에서 `ORIGINAL`과 합성 `RERECORDED`를 함께 생성한다.
+- Kaggle에서 positive 2개와 negative 2개를 개별 다운로드해 실제 전방 대시캠 영상, 정상 재생 및 디코딩을 육안 확인했다.
+- 네 source에 `prepare_stage1_rerecorded.py --variants 1`을 적용해 ORIGINAL 4개와 합성 RERECORDED 4개 생성이
+  return code 0으로 완료됐고, 사용자는 현재 합성 품질을 Stage1 추가학습 후보로 사용할 수 있다고 판단했다.
+- 라이선스: Nexar Open Data License. Nexar Inc. 출처표시와 라이선스 고지를 유지하면 사용·수정·배포할 수 있다.
+  데이터 자체의 영리 재판매는 금지되며 악의적 시스템, 오인정보, 재식별·감시, 무기화, 비윤리적 보험 활용 등
+  명시된 윤리적 제한을 준수해야 한다. 2차 평가 학습데이터 보고서에 공식 URL, 인용문헌, 라이선스를 기록한다.
+- 도입 시점: CCD 기반 최초 프로토타입과 실제 휴대전화 holdout 평가를 먼저 완료한 뒤 추가학습 데이터로 사용한다.
+  전체 31.4GB 다운로드 전 50개 확장 검수와 source-level split 검사를 한 번 더 수행한다.
+- 공식 출처: https://huggingface.co/datasets/nexar-ai/nexar_collision_prediction
+- 라이선스 전문: https://huggingface.co/datasets/nexar-ai/nexar_collision_prediction/blob/main/LICENSE
 
 ## 6. Stage 3 후보 조사 (1차, 2026-09-03)
 

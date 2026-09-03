@@ -155,3 +155,26 @@
 
 - 실제 촬영 전에 원본 ID를 고정하고 CSV를 보존해야 실수로 학습 데이터와 섞이는 것을 예방할 수 있다.
 - holdout 선택은 파일 나열 순서가 아니라 seed와 source ID에만 의존해야 다른 장비에서도 동일하게 재현된다.
+
+## 2026-09-03 — Nexar Stage 1 외부 데이터 후보 검증
+
+### 목표
+
+- 최초 CCD 프로토타입 이후 Stage 1 일반화 성능을 개선할 외부 대시캠 source 후보를 검증한다.
+
+### 과정
+
+- Nexar 공식 Hugging Face 저장소와 Nexar Open Data License 전문을 확인했다.
+- 전체 31.4GB 대신 train positive 2개와 negative 2개를 Kaggle에 개별 다운로드했다.
+- 네 영상을 직접 재생해 전방 대시캠 영상 여부와 품질을 확인하고, 각각 ORIGINAL 및 합성 RERECORDED 한 개씩 생성했다.
+
+### 결과
+
+- 합성 생성 명령이 return code 0으로 완료됐다.
+- 사용자가 영상과 합성 품질을 확인하고 Nexar를 Stage 1 추가학습 데이터 후보로 채택했다.
+- 최초 프로토타입 전에는 전체 다운로드하지 않고, 프로토 결과 확인 후 50개 확장 검수와 전체 도입을 진행한다.
+
+### 배운 점
+
+- Nexar의 positive/negative는 사고 유무 라벨이며 Stage 1의 ORIGINAL/RERECORDED와 무관하다.
+- 외부 데이터셋의 두 그룹 모두 동일하게 ORIGINAL과 합성 RERECORDED 쌍을 만들어야 데이터셋 출처가 정답 지름길이 되는 것을 막을 수 있다.
