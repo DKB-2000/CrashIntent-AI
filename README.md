@@ -115,10 +115,11 @@ python src/label_stage2.py
 - [x] Stage1 합성본 육안 품질 검증(사용자 확인)
 - [x] Stage1 MViTv2-S 학습·재로딩·추론 스모크 코드 작성 및 정적 계약 검사
 - [x] Stage1 모델 파이프라인 Kaggle 런타임 PASS(2 samples, CUDA, checkpoint 재로딩·출력 계약 정상)
+- [x] Stage1 휴대전화 검증용 source holdout 선택기 및 생성기 제외 옵션 구현
 - [ ] Stage2 CCD 200~300개 수동 라벨링
 
 ### 다음 작업
 
-1. CCD 전체를 source ID 기준으로 분할하고 Stage1 ORIGINAL/RERECORDED 학습 세트를 생성한다.
+1. 고정 seed로 CCD 30개 holdout CSV를 생성한 뒤, 이를 제외한 1,470개에서 Stage1 ORIGINAL/RERECORDED 학습 세트를 생성한다.
 2. 휴대전화 실제 재촬영 검증 세트(원본 30개×3조건, 약 90개)를 준비한다.
 3. 실제 재촬영 검증 세트를 제외한 합성 데이터로 Stage1 본 학습을 수행한다.

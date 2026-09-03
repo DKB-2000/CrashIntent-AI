@@ -3,6 +3,7 @@
 .vscode/
 Baseline/submit.zip
 Baseline.zip
+/crashvideo-data*.zip
 __pycache__/
 *.py[cod]
 artifacts/

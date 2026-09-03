@@ -26,6 +26,24 @@ import pandas as pd
 LABEL_COLUMNS = ["path", "label"]
 
 
+def _load_excluded_source_ids(path: Path) -> set[str]:
+    if not path.is_file():
+        raise FileNotFoundError(f"exclude file does not exist: {path}")
+    if path.suffix.lower() == ".csv":
+        table = pd.read_csv(path, dtype=str)
+        if "source_id" not in table.columns:
+            raise ValueError(f"exclude CSV must contain a source_id column: {path}")
+        values = table["source_id"].dropna().astype(str)
+    else:
+        values = pd.Series(
+            [line.strip() for line in path.read_text(encoding="utf-8-sig").splitlines() if line.strip()]
+        )
+    source_ids = {value.strip() for value in values if value.strip()}
+    if not source_ids:
+        raise ValueError(f"exclude file contains no source IDs: {path}")
+    return source_ids
+
+
 @dataclass(frozen=True)
 class Effects:
     perspective_x: float
@@ -283,6 +301,20 @@ def generate(args: argparse.Namespace) -> dict:
     input_dir = args.input_dir.resolve()
     output_dir = args.output_dir.resolve()
     videos = sorted(path for path in input_dir.glob(args.pattern) if path.is_file())
+    source_ids = [path.stem for path in videos]
+    if len(source_ids) != len(set(source_ids)):
+        raise ValueError("duplicate source IDs detected; video filename stems must be unique")
+    excluded_source_ids: set[str] = set()
+    exclusion_file = None
+    if args.exclude_file is not None:
+        exclusion_file = args.exclude_file.resolve()
+        requested_exclusions = _load_excluded_source_ids(exclusion_file)
+        missing = sorted(requested_exclusions.difference(source_ids))
+        if missing:
+            preview = ", ".join(missing[:10])
+            raise ValueError(f"exclude source IDs not found in input ({len(missing)}): {preview}")
+        excluded_source_ids = requested_exclusions
+        videos = [path for path in videos if path.stem not in excluded_source_ids]
     if args.limit is not None:
         videos = videos[: args.limit]
     if not videos:
@@ -364,6 +396,8 @@ def generate(args: argparse.Namespace) -> dict:
         "status": "PASS",
         "input_dir": str(input_dir),
         "output_dir": str(output_dir),
+        "exclusion_file": str(exclusion_file) if exclusion_file else None,
+        "excluded_sources": len(excluded_source_ids),
         "sources": len(videos),
         "variants_per_source": args.variants,
         "samples": len(labels),
@@ -385,6 +419,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--pattern", default="*.mp4")
+    parser.add_argument(
+        "--exclude-file",
+        type=Path,
+        help="CSV with a source_id column, or a text file with one source ID per line",
+    )
     parser.add_argument("--variants", type=int, default=2)
     parser.add_argument("--validation-fraction", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=20260903)

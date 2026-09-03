@@ -4,6 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $source = Join-Path $root 'src\prepare_stage1_rerecorded.py'
+$selector = Join-Path $root 'src\select_stage1_holdout.py'
 
 function Assert-Condition {
     param([bool]$Condition, [string]$Message)
@@ -11,6 +12,7 @@ function Assert-Condition {
 }
 
 Assert-Condition (Test-Path -LiteralPath $source -PathType Leaf) 'Stage1 generator is missing.'
+Assert-Condition (Test-Path -LiteralPath $selector -PathType Leaf) 'Stage1 holdout selector is missing.'
 $text = Get-Content -Raw -LiteralPath $source
 foreach ($token in @(
     'class H264Writer',
@@ -26,9 +28,21 @@ foreach ($token in @(
     'f"labels_{split}.csv"',
     'generation_manifest.csv',
     'source_splits.csv',
-    'source leakage detected'
+    'source leakage detected',
+    '--exclude-file',
+    'exclude CSV must contain a source_id column'
 )) {
     Assert-Condition $text.Contains($token) "Generator contract token is missing: $token"
+}
+
+$selectorText = Get-Content -Raw -LiteralPath $selector
+foreach ($token in @(
+    'stage1-phone-holdout',
+    'selection_rank',
+    '--count',
+    '--output-file'
+)) {
+    Assert-Condition $selectorText.Contains($token) "Holdout selector contract token is missing: $token"
 }
 
 Write-Host 'PASS: Stage1 rerecorded generator static contract'

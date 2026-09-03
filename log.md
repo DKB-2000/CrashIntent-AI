@@ -131,3 +131,27 @@
 - 각 항목에는 반드시 목표, 과정, 결과, 배운 점을 기록한다.
 - 원본 데이터 출처와 라이선스 변경은 `DATA_SOURCES.md`에도 함께 반영한다.
 - 상세 실행법은 해당 runbook에 기록하고 이 문서에는 결정과 검증 결과를 요약한다.
+
+## 2026-09-03 — Stage 1 전체 생성용 holdout 보호 기능
+
+### 목표
+
+- 휴대전화 재촬영 검증용 CCD 원본 30개가 합성 학습 데이터에 들어가지 않도록 재현 가능한 제외 절차를 만든다.
+
+### 과정
+
+- `src/select_stage1_holdout.py`를 추가해 seed와 source ID 해시로 holdout을 결정하고 CSV로 저장하게 했다.
+- `src/prepare_stage1_rerecorded.py`에 `--exclude-file` 옵션을 추가했다.
+- 제외 CSV의 `source_id`가 입력에 없거나 중복 source stem이 존재하면 즉시 실패하도록 검증을 추가했다.
+- 공식 예제 5개에서 holdout 1개를 선택해 CSV 생성까지 실행했다.
+
+### 결과
+
+- 정적 계약 검사와 Python 문법 검사가 PASS했다.
+- 동일 seed에서 공식 예제 `000004`가 holdout으로 선택됐다.
+- 로컬 전체 렌더링 검사는 `ffmpeg`가 PATH에 없어 인코딩 시작 전에 중단됐다. 기존 Kaggle 환경에서는 생성기 런타임이 이미 PASS했으며 새 제외 옵션의 전체 Kaggle 검증이 남았다.
+
+### 배운 점
+
+- 실제 촬영 전에 원본 ID를 고정하고 CSV를 보존해야 실수로 학습 데이터와 섞이는 것을 예방할 수 있다.
+- holdout 선택은 파일 나열 순서가 아니라 seed와 source ID에만 의존해야 다른 장비에서도 동일하게 재현된다.

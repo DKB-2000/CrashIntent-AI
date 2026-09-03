@@ -45,3 +45,38 @@ videos for real training.
 Synthetic videos are training candidates, not proof of real rerecording
 generalization. Final validation must use the separately recorded phone/display
 set, which must not share source scenes with training.
+
+## Full CCD build with a phone holdout
+
+Select the 30 source scenes before generating any derivatives. Selection is
+deterministic for the seed, and the CSV is the permanent audit record for the
+real phone/display validation set.
+
+```bash
+python select_stage1_holdout.py \
+  --input-dir /kaggle/input/ccd-crash-1500/videos \
+  --output-file /kaggle/working/stage1_phone_holdout_sources.csv \
+  --count 30 \
+  --seed 20260903
+```
+
+Generate only from the remaining 1,470 sources:
+
+```bash
+python prepare_stage1_rerecorded.py \
+  --input-dir /kaggle/input/ccd-crash-1500/videos \
+  --output-dir /kaggle/working/stage1-full-v1 \
+  --exclude-file /kaggle/working/stage1_phone_holdout_sources.csv \
+  --variants 2 \
+  --validation-fraction 0.2 \
+  --seed 20260903
+```
+
+Expected report values are `excluded_sources=30`, `sources=1470`,
+`samples=4410`, and `source_leakage=false`. Preserve the holdout CSV with the
+generated Dataset. Never use the 30 source scenes or their phone recordings for
+training or synthetic validation.
+
+Run a small `--limit 20` build first, inspect random outputs, and then start the
+full build without `--limit`. `ffmpeg` with `libx264` must be available on PATH;
+it is available in the normal Kaggle image.
