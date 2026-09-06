@@ -11,6 +11,16 @@
 
 ## 조사 일자: 2026-09-02 (Stage 2 후보 조사) / 다운로드·검증 일자: 2026-09-02
 
+### 사전학습 가중치 로컬 사용 기록 (2026-09-06)
+
+- 공식 베이스라인과 같은 torchvision ResNet18 `IMAGENET1K_V1`을 수동 라벨 첫 테스트에 사용했다.
+- 문서: https://docs.pytorch.org/vision/0.23/models/generated/torchvision.models.resnet18.html
+- 파일: https://download.pytorch.org/models/resnet18-f37072fd.pth
+- SHA256: `f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec`.
+- 특징 추출기는 고정하고 Stage2 temporal/scene head만 학습했다.
+- 코드 라이선스와 사전학습 데이터의 이용조건은 구분해야 한다. 이번 기록은 공식 배포처와 사용 이력이며
+  ImageNet 데이터 자체의 권리까지 새로 검증했다는 뜻은 아니다.
+
 ## 1. CCD (Car Crash Dataset) — 최우선 후보, 데이콘 베이스라인이 실제로 참조한 데이터셋으로 확인됨. **다운로드完·구조 검증完**
 
 > **상태: 사고 영상(Crash-1500) 1,500건 + 라벨 파일 확보 완료.** 정상주행(Normal) 3,000건(BDD100K 파생)은 Stage2

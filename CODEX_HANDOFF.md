@@ -6,12 +6,12 @@
 ## 0. 프로젝트 한 줄 요약
 
 데이콘 대회 236753 "블랙박스 영상 기반 지능형 고의사고 분석 모델"(https://dacon.io/competitions/official/236753) 참가 프로젝트.
-실제 코드는 이 폴더(`crashvideo-project/`) 안에서 작업한다.
+실제 코드는 이 저장소 루트 안에서 작업한다. 현재 로컬 경로는 `C:\Crash_AI\CrashIntent-AI`다.
 
-> 이 폴더(`crashvideo-project/`)는 **Codex가 이 폴더 자체를 작업 루트로 삼도록 자기완결형으로 구성**돼 있다.
-> 상위 폴더(`D:\DayCon\CrashIntent AI\`)에는 Claude Code 멀티에이전트 오케스트레이션 하네스(`CLAUDE.md`)와
-> 이 대회와 무관한 다른 프로젝트용 에이전트(`backend-expert` 등, 이름만 비슷한 별개의 "CrashIntent AI" Java 제품)가
-> 섞여 있어서 혼란을 피하려고 필요한 문서만 아래 `docs/`에 사본으로 복사해뒀다. **Codex는 상위 폴더로 올라갈 필요가 없다.**
+> 이 폴더는 독립 Git 저장소이며 **이 폴더 자체를 작업 루트로 사용**한다.
+> 필요한 문서는 모두 `docs/`에 있다. **상위 폴더로 올라갈 필요가 없다.**
+> 아래 완료 기록과 구조는 이전 PC에서의 작업 이력이다. 새 clone에 외부 데이터나 모델이
+> 존재한다는 의미는 아니다. 로컬 복원 목록은 `docs/local-setup.md`를 참고한다.
 
 ## 1. 먼저 읽어야 할 문서 (이 순서로)
 
@@ -53,8 +53,8 @@ crashvideo-project/                          ← Codex 작업 루트로 이 폴�
     └── dota/                                ← DoTA 조사용 다운로드분 (라벨만 + 검증용 클립 일부)
 ```
 
-> 참고: 이 폴더는 여전히 상위 git 저장소(`D:\DayCon\CrashIntent AI\`)에 속한 하위 폴더다(별도 저장소 아님).
-> Codex의 작업 루트만 여기로 잡으라는 뜻이지, git 커밋 범위가 바뀌는 건 아니다.
+> 현재 이 폴더 자체가 독립 Git 저장소다. 경로 기본값은 `project.properties`,
+> PC별 경로는 git에서 제외되는 `project.local.properties`로 관리한다.
 
 ## 3. 완료된 것
 
@@ -95,7 +95,8 @@ crashvideo-project/                          ← Codex 작업 루트로 이 폴�
 1. **[현재] Stage1 실제 데이터 구축** — 합성 생성기와 MViTv2-S 모델 파이프라인은 Kaggle 런타임 PASS했다.
    CCD 전체를 source ID 기준으로 분할해 ORIGINAL/RERECORDED 학습 세트를 생성하고, 별도 원본 30개는 휴대전화
    3조건 재촬영 검증용으로 제외한다.
-3. **Stage2 CCD 라벨링** — 목표는 우선 200~300건. 데이터 전략 검증이 끝났으므로 Stage1 작업 후 재개한다.
+3. **Stage2 CCD 라벨링** — 목표는 우선 200~300건. 2026-09-06 기준 영상 ID 200까지 확인했고
+   수동 라벨 74건이 저장됐다. 다음 재개 지점은 ID 201이며, 200~300건을 확보한 뒤 평가를 재개한다.
 4. **Stage2 4-output 런타임 검증·학습** — `src/stage2_pipeline.py`와 정적 검사는 작성 완료. Kaggle 런타임 PASS 확인 후
    실제 라벨이 채워지면 entry_frame/evasion_space/entry_side까지 학습한다.
 5. **Phase 3 로컬 평가 하네스** — 대회 공식 산식(Stage1·3 Macro-F1, Stage2 프레임→초 변환 비교, 종합점수
@@ -123,15 +124,14 @@ crashvideo-project/                          ← Codex 작업 루트로 이 폴�
 ## 7. Codex 실행 방법
 
 ```bash
-cd "D:\DayCon\CrashIntent AI\crashvideo-project"
+cd "C:\Crash_AI\CrashIntent-AI"
 codex
 ```
 
 이 폴더를 작업 루트로 잡고 실행할 것. Codex CLI는 관례상 `AGENTS.md`를 자동으로 읽으므로, 이 폴더의 `AGENTS.md`가
 이 문서(`CODEX_HANDOFF.md`)로 안내해준다 — 별도로 컨텍스트를 붙여넣을 필요 없이 시작하면 됨.
 
-**상위 폴더로 올라가지 말 것.** `D:\DayCon\CrashIntent AI\` 루트에는 이 대회와 무관한 Claude Code 오케스트레이션
-설정(`CLAUDE.md`)과 다른 프로젝트(이름만 같은 별개의 "CrashIntent AI" Java 제품)용 에이전트가 섞여 있어 혼란만 준다.
+**상위 폴더로 올라가지 말 것.** 현재 clone한 저장소 안에서만 작업한다.
 필요한 문서는 전부 `docs/`에 사본으로 들어있다.
 
 ## 8. 문서 갱신 규칙

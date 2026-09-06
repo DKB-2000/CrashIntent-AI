@@ -21,7 +21,7 @@ load_video_frames / append_result)만 헤드리스로 검증됐다.
     pip install opencv-python
 
 ## 실행
-    cd crashvideo-project
+    # 저장소 루트에서 실행
     python src/label_stage2.py
 
 ## 조작키
@@ -43,6 +43,7 @@ load_video_frames / append_result)만 헤드리스로 검증됐다.
     crashvideo-project/data/stage2/labels_manual.csv
     컬럼: ID,collision_frame,entry_frame,evasion_space,entry_side
 """
+import argparse
 import csv
 import os
 import re
@@ -84,7 +85,7 @@ def load_collision_frames(label_file: Path = CCD_LABEL_FILE) -> dict:
     if not label_file.exists():
         raise FileNotFoundError(
             f"CCD 라벨 파일을 찾을 수 없습니다: {label_file}\n"
-            "crashvideo-project/data_raw/ccd/Crash-1500.txt 가 있는지 확인하세요"
+            "project.local.properties의 ccd.label.file 경로를 확인하세요"
             "(DATA_SOURCES.md 1번 섹션 참고)."
         )
     result = {}
@@ -261,9 +262,14 @@ def label_one_video(video_id, frames, collision_frame):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="CCD Stage2 manual labeling")
+    parser.add_argument("--start-id", type=int, default=1,
+                        help="Start at this video ID; earlier pending videos remain available next run")
+    args = parser.parse_args()
     collision_frames = load_collision_frames()
     labeled_ids = load_labeled_ids()
     pending = list_pending_videos(collision_frames=collision_frames, labeled_ids=labeled_ids)
+    pending = [video_id for video_id in pending if int(video_id) >= args.start_id]
 
     if not pending:
         print("라벨링할 영상이 없습니다 — 이미 전부 완료됐거나 "

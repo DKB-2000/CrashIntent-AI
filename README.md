@@ -4,6 +4,9 @@
 경로는 git에서 제외되는 `project.local.properties`로 관리한다. 저장소 게시 절차와 제외 파일은
 `docs/git-portability.md`를 참고한다.
 
+새 PC에서 clone한 뒤 별도로 복원할 파일과 로컬 환경 준비 순서는
+`docs/local-setup.md`를 참고한다.
+
 실제 코드(데이터 파이프라인·학습·추론·제출 패키징)가 사는 Codex 작업 루트다. 대회 규칙·데이터 규격·평가 산식·
 베이스라인 코드 분석 정본은 `docs/dacon-236753-대회안내.md`를 참고한다. 이 문서는 **실행 로드맵**만 다룬다.
 세 Stage의 확정 데이터 구성과 보강 조건은 `docs/data-strategy-status.md`에서 한눈에 확인할 수 있다.
@@ -56,7 +59,7 @@ CCD는 `collision_frame`(충돌시점)만 공식 라벨이 있고 나머지 3개
 
 ```bash
 pip install opencv-python
-cd crashvideo-project
+# 저장소 루트에서 실행
 python src/label_stage2.py
 ```
 
@@ -99,6 +102,10 @@ python src/label_stage2.py
 
 ## 지금 당장 할 일
 
+2026-09-06 로컬 업데이트: 영상 ID 200번까지 확인을 진행했고 수동 라벨 74건이 저장됐다.
+추가 평가는 실행하지 않았으며, 앞서 44건으로 수행한 최초 개발 테스트 결과와 결론은
+`docs/stage2-manual-test-100.md`에 보존한다. 다음 목표는 적합한 직접 충돌 표본 200~300건이다.
+
 ### 현재 진행 현황 (2026-09-03)
 
 - [x] Phase 0 공식 베이스라인 학습·추론·ZIP 생성 검증
@@ -120,7 +127,7 @@ python src/label_stage2.py
 - [x] Stage1 외부 보강 후보 Nexar 샘플 다운로드·재생·합성 검증 및 라이선스 확인
 - [x] Stage1·2·3 데이터 전략 확정 및 `docs/data-strategy-status.md` 문서화
 - [x] Stage3 보강 데이터 ZOD 접근 신청(승인 대기)
-- [ ] Stage2 CCD 200~300개 수동 라벨링
+- [ ] Stage2 CCD 200~300개 수동 라벨링 (ID 200까지 진행, 저장 74건)
 
 ### 다음 작업
 

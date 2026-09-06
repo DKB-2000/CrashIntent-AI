@@ -10,7 +10,7 @@
 | Stage | 기본 데이터 | 보강 데이터 | 현재 데이터 상태 | 본 학습 |
 |---|---|---|---|---|
 | Stage 1 재녹화 판별 | CCD | Nexar | 전략·샘플 검증 완료 | 미진행 |
-| Stage 2 사고 분석 | CCD 수동 라벨 | Nexar 선별, 필요 시 DADA-2000 | CCD 확보, 라벨링 대기 | 미진행 |
+| Stage 2 사고 분석 | CCD 수동 라벨 | Nexar 선별, 필요 시 DADA-2000 | ID 200까지 확인, 74건 저장 | 미진행 |
 | Stage 3 차량 거동 | comma2k19 | ZOD | comma 변환 검증 완료, ZOD 승인 대기 | 미진행 |
 
 ## Stage 1 — CCD 프로토타입 후 Nexar 추가학습
@@ -60,7 +60,8 @@
 ### 현재 상태와 다음 단계
 
 - CCD 확보·검증, OpenCV 수동 라벨링 GUI, Stage 2 4-output 코드와 정적 계약 검사는 완료됐다.
-- CCD 200~300개 수동 라벨링과 Stage 2 Kaggle 런타임 스모크는 미완료다.
+- CCD 영상 ID 200까지 확인했으며 실제 저장된 수동 라벨은 74건이다. 목표 200~300건에는 아직 미달이다.
+- Stage 2 Kaggle 런타임 스모크와 본 학습은 미완료다. 2026-09-06 진행분에 대해서는 추가 평가를 실행하지 않았다.
 - 현재 가장 큰 병목은 외부 영상 수가 아니라 exact manual label 수다.
 
 ## Stage 3 — comma2k19 기본, ZOD 도시 행동 보강
@@ -104,7 +105,7 @@
 
 ## 실행 우선순위
 
-1. Stage 2 CCD 200~300개 수동 라벨링.
+1. Stage 2 CCD 200~300개 수동 라벨링 (다음 재개 지점: ID 201).
 2. Stage 2 4-output Kaggle 런타임 스모크와 최초 학습.
 3. comma2k19 첫 10GB 청크의 행동 episode 분포 분석과 Stage 3 프로토타입.
 4. ZOD 승인 시 5~10개 sequence 변환 스모크.

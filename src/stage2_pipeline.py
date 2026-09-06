@@ -111,7 +111,7 @@ def _features(
 
 
 def _normalized_rows(csv_path: Path, data_dir: Path, limit: int | None) -> list[dict]:
-    frame = pd.read_csv(csv_path)
+    frame = pd.read_csv(csv_path, dtype={"ID": str})
     required = {"ID", "path", "t_collision", "t_entry", "evasion_space", "entry_side"}
     missing = sorted(required.difference(frame.columns))
     if missing:
@@ -186,8 +186,9 @@ def run_pipeline(args: argparse.Namespace, labels_csv: Path) -> dict:
             _read_video(row["video_path"]), backbone, transform, device, args.feature_batch_size
         )
         frame_count = len(features)
-        collision = min(max(row["collision"], 0), frame_count - 1)
-        entry = min(max(row["entry"], 0), frame_count - 1)
+        collision, entry = row["collision"], row["entry"]
+        if not (0 <= collision < frame_count and 0 <= entry < frame_count):
+            raise ValueError(f"event frame out of range for {row['ID']}: {collision}, {entry}")
         samples.append((row, features, collision, entry))
 
     temporal = Stage2Temporal().to(device)

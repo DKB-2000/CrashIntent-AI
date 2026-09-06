@@ -52,3 +52,28 @@ ID,path,t_collision,t_entry,evasion_space,entry_side
 
 `entry_side` accepts `LEFT`/`RIGHT` (or `0`/`1`), and `evasion_space` accepts
 only `0`/`1`.
+
+## Manual-label development test (local GPU)
+
+`src/test_stage2_manual.py` snapshots the manual CSV, decodes every labeled video,
+checks ranges/categories and CCD reference consistency, and holds out CCD source groups.
+It does not overwrite manual labels. Rows with entry later than the CCD collision
+reference are quarantined for review, not automatically corrected. Use `--exclude-id`
+for additional reviewed cases. Output directories must be new to preserve prior runs.
+
+```powershell
+.\.venv\Scripts\python.exe src/test_stage2_manual.py --output-dir artifacts/stage2-manual-100 --exclude-id 000007 --epochs 5 --device cuda
+```
+
+This uses ImageNet ResNet18 weights (download required on first run; cached under
+`artifacts/torch-cache/hub`). Four losses train on the training split only; the saved
+model is reloaded before validation. Fixed five-epoch final weights are named `best.pt`
+for compatibility; they are not selected using validation performance.
+
+Outputs include the manual snapshot, audit, train/validation/review CSVs, model files,
+validation predictions, per-video errors, and `test_report.json`. The report compares
+categorical accuracy against a constant majority prediction fitted on training labels.
+Timing success uses ±0.3 seconds and the decoded video's FPS. These are development
+diagnostics, not the complete official Stage2 score or proof of annotation correctness.
+
+2026-09-06 results: see `docs/stage2-manual-test-100.md`.
