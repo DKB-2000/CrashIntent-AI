@@ -134,3 +134,12 @@ python src/label_stage2.py
 1. 고정 seed로 CCD 30개 holdout CSV를 생성한 뒤, 이를 제외한 1,470개에서 Stage1 ORIGINAL/RERECORDED 학습 세트를 생성한다.
 2. 휴대전화 실제 재촬영 검증 세트(원본 30개×3조건, 약 90개)를 준비한다.
 3. 실제 재촬영 검증 세트를 제외한 합성 데이터로 Stage1 본 학습을 수행한다.
+
+### Stage3 모델 코드 구현 완료 (2026-09-07)
+
+`src/stage3_pipeline.py`에 audit/train/evaluate/predict/smoke와 CUDA 전용
+`predict_stage3(data_dir, model_dir)`를 구현했다. 과거 16프레임, 모든 10Hz 시점 출력,
+STOPPED 조향 손실 제외 및 route 검증을 적용한다. 테스트 6개와 실제 MViTv2-S CPU 스모크,
+짧은 데이터의 정식 학습·검증·체크포인트 재로딩 연결이 통과했다.
+GPU 스모크용 ZIP은 `artifacts/stage3-gpu-smoke.zip`이며 실제 GPU PASS와 본 학습은 아직 미완료다.
+다음은 Kaggle GPU 스모크 확인이다. 실행법과 한계는 `docs/stage3-pipeline-runbook.md` 참고.

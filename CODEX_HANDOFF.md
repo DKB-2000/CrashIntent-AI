@@ -3,6 +3,16 @@
 이 문서는 Claude Code 세션의 토큰 예산 소진으로 작업을 Codex(또는 다른 에이전트)가 이어받기 위한 인계 문서입니다.
 이 문서 하나만 읽어도 프로젝트 전체 맥락과 "지금 어디서부터 이어가야 하는지"를 알 수 있게 구성했습니다.
 
+## 최신 재개 지점 (2026-09-07)
+
+마지막 작업인 **Stage3 comma2k19 Chunk_1 변환과 전수 검증을 완료**했다.
+187개 영상 / 21개 route / 112,205개 10Hz 임시 라벨이며 검증은 PASS다.
+상세 결과와 재현 명령은 `docs/stage3-comma2k19-runbook.md`,
+`artifacts/stage3-comma-chunk1/validation_report.json`을 참고한다.
+추가로 조향 보정 실험 v1과 route 분할을 완료했다. 영점 −0.2455도·직진 ±1.5도, 학습 156개/검증 31개다. 상세는 `docs/stage3-calibration-v1.md`와 `artifacts/stage3-comma-chunk1-calibrated-v1/`을 참고한다. Stage3 모델 파이프라인도 구현 완료했다. `docs/stage3-pipeline-runbook.md` 참고. 테스트 6개와 실제 MViTv2-S CPU 학습·저장·재로딩·추론 스모크가 통과했다. GPU 번들은 `artifacts/stage3-gpu-smoke.zip`이며 다음은 Kaggle GPU 스모크 실제 PASS 확인이다.
+초기 구간별 중앙값 라벨은 보존했고 v1은 별도 생성했다. v1도 센서 proxy와 표본 검수로 정한 실험용이며 공식 정답은 아니다. 본 학습은 미진행이다.
+Stage2는 74건 개발 평가도 수행됐으며 `docs/stage2-manual-test-200.md`에 결과가 있다.
+아래 과거 기록의 Stage3 확대 보류·Stage2 추가 평가 미실행 상태보다 이 기록을 우선한다.
 ## 0. 프로젝트 한 줄 요약
 
 데이콘 대회 236753 "블랙박스 영상 기반 지능형 고의사고 분석 모델"(https://dacon.io/competitions/official/236753) 참가 프로젝트.

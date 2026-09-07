@@ -1,6 +1,6 @@
 # Stage 1·2·3 데이터 전략 및 진행 현황
 
-기준일: 2026-09-03
+기준일: 2026-09-07 (Stage3 Chunk_1 변환·검증 반영)
 
 이 문서는 세 Stage의 확정 데이터 구성, 보강 후보, 도입 조건과 현재 상태를 한곳에서 추적한다.
 데이터별 상세 조사 근거와 라이선스는 `DATA_SOURCES.md`를 정본으로 사용한다.
@@ -11,7 +11,7 @@
 |---|---|---|---|---|
 | Stage 1 재녹화 판별 | CCD | Nexar | 전략·샘플 검증 완료 | 미진행 |
 | Stage 2 사고 분석 | CCD 수동 라벨 | Nexar 선별, 필요 시 DADA-2000 | ID 200까지 확인, 74건 저장 | 미진행 |
-| Stage 3 차량 거동 | comma2k19 | ZOD | comma 변환 검증 완료, ZOD 승인 대기 | 미진행 |
+| Stage 3 차량 거동 | comma2k19 | ZOD | Chunk_1 187개 변환·검증 완료, ZOD 승인 대기 | 미진행 |
 
 ## Stage 1 — CCD 프로토타입 후 Nexar 추가학습
 
@@ -91,7 +91,7 @@
 ### 검증 상태와 다음 단계
 
 - comma2k19 공식 1분 예제에서 1,200 source frames를 10Hz 600 samples로 변환하고 오버레이 검수까지 PASS했다.
-- 첫 10GB 청크 확보와 전체 행동 episode 분포 분석, Stage 3 본 학습은 미완료다.
+- 첫 청크 확보, 센서 분포 검사 및 187개 영상·112,205개 라벨 변환과 전수 검증을 완료했다. 21개 route이며 STOPPED는 7,828개다. 구간별 조향 중앙값 보정은 임시 설정으로 표본 검수·영점 보정이 필요하다. Stage 3 본 학습은 미완료다.
 - ZOD 승인 후 전방 카메라와 100Hz vehicle data의 timestamp·부호·필드를 먼저 실측한다.
 
 ## 공통 원칙
@@ -107,7 +107,25 @@
 
 1. Stage 2 CCD 200~300개 수동 라벨링 (다음 재개 지점: ID 201).
 2. Stage 2 4-output Kaggle 런타임 스모크와 최초 학습.
-3. comma2k19 첫 10GB 청크의 행동 episode 분포 분석과 Stage 3 프로토타입.
+3. comma2k19 Chunk_1 표본 검수·조향 보정, route 분할 및 Stage 3 프로토타입 준비 (187개 변환·검증 완료).
 4. ZOD 승인 시 5~10개 sequence 변환 스모크.
 5. Stage 1 실행 환경이 준비되면 CCD 전체 합성 및 휴대전화 holdout 평가.
 6. 각 프로토타입의 실제 실패 유형을 근거로 Nexar·ZOD 등 보강 데이터를 단계적으로 확대한다.
+
+### Stage3 조향 보정 실험 v1 (2026-09-07)
+
+Chunk_1의 학습 17 route에서 IMU·pose를 비교해 영점 −0.2455도와 직진 범위 ±1.5도의
+실험용 v1을 생성했다. 검증 4 route는 보정 선택에서 제외했으며 156/31영상, 총 112,205행이다.
+원본 라벨은 보존했고 v1은 `artifacts/stage3-comma-chunk1-calibrated-v1/`에 있다.
+검수 영상 14개와 전체 1,120프레임 디코딩, 분할·라벨 검사 및 코드 테스트 4개가 통과했다.
+공식 정답 기준이나 차량·지역 일반화를 확정한 결과는 아니다. 근거·한계·실행법은
+`docs/stage3-calibration-v1.md` 참고. 다음은 v1 기반 Stage3 모델 파이프라인/GPU 스모크 준비다.
+
+### Stage3 모델 코드 구현 완료 (2026-09-07)
+
+`src/stage3_pipeline.py`에 audit/train/evaluate/predict/smoke와 CUDA 전용
+`predict_stage3(data_dir, model_dir)`를 구현했다. 과거 16프레임, 모든 10Hz 시점 출력,
+STOPPED 조향 손실 제외 및 route 검증을 적용한다. 테스트 6개와 실제 MViTv2-S CPU 스모크,
+짧은 데이터의 정식 학습·검증·체크포인트 재로딩 연결이 통과했다.
+GPU 스모크용 ZIP은 `artifacts/stage3-gpu-smoke.zip`이며 실제 GPU PASS와 본 학습은 아직 미완료다.
+다음은 Kaggle GPU 스모크 확인이다. 실행법과 한계는 `docs/stage3-pipeline-runbook.md` 참고.

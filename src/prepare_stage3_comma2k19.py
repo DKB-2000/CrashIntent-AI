@@ -54,8 +54,29 @@ def _validate_times(name: str, timestamps: np.ndarray, values: np.ndarray) -> No
         raise ValueError(f"{name}: timestamps are not strictly increasing")
 
 
+def _deduplicate_times(name: str, timestamps: np.ndarray, values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Keep the first value for repeated sensor timestamps."""
+    timestamps = np.asarray(timestamps)
+    values = np.asarray(values)
+    if len(timestamps) != len(values):
+        raise ValueError(f"{name}: timestamp/value length mismatch")
+    keep = np.r_[True, np.diff(timestamps) > 0]
+    return timestamps[keep], values[keep]
+
+
 def _run(command: list[str]) -> None:
     subprocess.run(command, check=True)
+
+
+def _ffmpeg() -> str:
+    executable = shutil.which("ffmpeg")
+    if executable:
+        return executable
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError as exc:
+        raise RuntimeError("Install ffmpeg on PATH or imageio-ffmpeg") from exc
 
 
 def _video_frame_count(path: Path) -> int:
@@ -70,9 +91,7 @@ def _video_frame_count(path: Path) -> int:
 def _transcode_video(
     source: Path, destination: Path, source_hz: float, target_hz: float
 ) -> None:
-    ffmpeg = shutil.which("ffmpeg")
-    if ffmpeg is None:
-        raise RuntimeError("ffmpeg is required but was not found on PATH")
+    ffmpeg = _ffmpeg()
     destination.parent.mkdir(parents=True, exist_ok=True)
     _run(
         [
@@ -217,9 +236,7 @@ def _write_overlay(video_path: Path, labels: pd.DataFrame, destination: Path) ->
     writer.release()
     if written != len(labels):
         raise RuntimeError(f"overlay frame mismatch: wrote {written}, labels {len(labels)}")
-    ffmpeg = shutil.which("ffmpeg")
-    if ffmpeg is None:
-        raise RuntimeError("ffmpeg is required but was not found on PATH")
+    ffmpeg = _ffmpeg()
     _run(
         [
             ffmpeg,
@@ -255,12 +272,14 @@ def convert(args: argparse.Namespace) -> dict:
     frame_times = _one_dimensional("frame_times", _load(source / "global_pose/frame_times"))
     speed_t = _one_dimensional("speed_t", _load(source / "processed_log/CAN/speed/t"))
     speed = _one_dimensional("speed", _load(source / "processed_log/CAN/speed/value"))
+    speed_t, speed = _deduplicate_times("speed", speed_t, speed)
     steer_t = _one_dimensional(
         "steer_t", _load(source / "processed_log/CAN/steering_angle/t")
     )
     steer = _one_dimensional(
         "steer", _load(source / "processed_log/CAN/steering_angle/value")
     )
+    steer_t, steer = _deduplicate_times("steering", steer_t, steer)
     _validate_times("speed", speed_t, speed)
     _validate_times("steering", steer_t, steer)
     if np.any(np.diff(frame_times) <= 0):
