@@ -5,9 +5,7 @@
 
 ## 최신 재개 지점 (2026-09-09)
 
-커밋 전 조회에서도 추가 학습은 RUNNING이다. Kaggle lastRunTime은 2026-09-09 04:18:08 UTC(한국시간13:18)다. 14:44 조회 기준 약86분 경과했으며 실행 중 CLI 로그는 아직 제공되지 않았다. 데이터·모델·로컬 결과와 Windows 완료 알림 스크립트는 `artifacts/`에 있어 Git에 포함하지 않는다. 새 PC에서는 위 Kaggle Dataset과 Notebook 출력에서 복원해야 한다.
-
-**최신 실행:** 사용자 요청으로 기존 첫 에폭 가중치에서 영상8개 혼합 배치 추가3에폭(누적2~4)을 Kaggle에 등록했다. `biadis/crashintent-stage3-mixed-finetuning` v1, 최대8시간. `notebooks/Stage3_Mixed_Finetuning.ipynb`, 초기 가중치 및 코드 assets는 `artifacts/kaggle-stage3-mixed-training/`에 있다. 테스트8개와 실제 혼합 배치 로딩 PASS. optimizer는 새로 시작하며 라벨·분할·lr1e-4·batch2·stride8 유지. 다음은 kernels status 확인 후 결과 ZIP/최적모델 회수·이전 F1 및 클래스 쏠림과 비교다. 아직 추가 학습 완료나 개선은 확인 전이다. 상태 확인을 위해 push하지 말 것(재실행됨).
+**최신 결과:** 영상8개 혼합 배치 추가3에폭(누적2~4)이 완료됐고 결과 ZIP·최적 모델 회수 및 로컬 검증 PASS다. 총17,550스텝, runner3시간42분. 최적은epoch3. 가감속 F1 0.180613, 주행 중 조향 F1 0.221897이지만 예측은 모두 CONSTANT/STRAIGHT로 최빈 클래스 기준과 같다. 단일 클래스 쏠림이 해결되지 않았다. 상세 `docs/stage3-mixed-finetuning-results.md`, `artifacts/kaggle-stage3-mixed-training/result-validation.json` 참고. 다음은 클래스가 섞인 작은 고정 표본 과적합 및 로짓·gradient·가중치 변화 진단이다. 신규 학습은 아직 시작하지 않았다. 데이터·모델·결과는 artifacts에 있어 Git 제외이며, 다른 PC에서는 Kaggle 출력에서 회수한다.
 
 마지막 작업인 **Stage3 comma2k19 Chunk_1 변환과 전수 검증을 완료**했다.
 187개 영상 / 21개 route / 112,205개 10Hz 임시 라벨이며 검증은 PASS다.
