@@ -3,14 +3,18 @@
 이 문서는 Claude Code 세션의 토큰 예산 소진으로 작업을 Codex(또는 다른 에이전트)가 이어받기 위한 인계 문서입니다.
 이 문서 하나만 읽어도 프로젝트 전체 맥락과 "지금 어디서부터 이어가야 하는지"를 알 수 있게 구성했습니다.
 
-## 최신 재개 지점 (2026-09-07)
+## 최신 재개 지점 (2026-09-09)
+
+커밋 전 조회에서도 추가 학습은 RUNNING이다. Kaggle lastRunTime은 2026-09-09 04:18:08 UTC(한국시간13:18)다. 14:44 조회 기준 약86분 경과했으며 실행 중 CLI 로그는 아직 제공되지 않았다. 데이터·모델·로컬 결과와 Windows 완료 알림 스크립트는 `artifacts/`에 있어 Git에 포함하지 않는다. 새 PC에서는 위 Kaggle Dataset과 Notebook 출력에서 복원해야 한다.
+
+**최신 실행:** 사용자 요청으로 기존 첫 에폭 가중치에서 영상8개 혼합 배치 추가3에폭(누적2~4)을 Kaggle에 등록했다. `biadis/crashintent-stage3-mixed-finetuning` v1, 최대8시간. `notebooks/Stage3_Mixed_Finetuning.ipynb`, 초기 가중치 및 코드 assets는 `artifacts/kaggle-stage3-mixed-training/`에 있다. 테스트8개와 실제 혼합 배치 로딩 PASS. optimizer는 새로 시작하며 라벨·분할·lr1e-4·batch2·stride8 유지. 다음은 kernels status 확인 후 결과 ZIP/최적모델 회수·이전 F1 및 클래스 쏠림과 비교다. 아직 추가 학습 완료나 개선은 확인 전이다. 상태 확인을 위해 push하지 말 것(재실행됨).
 
 마지막 작업인 **Stage3 comma2k19 Chunk_1 변환과 전수 검증을 완료**했다.
 187개 영상 / 21개 route / 112,205개 10Hz 임시 라벨이며 검증은 PASS다.
 상세 결과와 재현 명령은 `docs/stage3-comma2k19-runbook.md`,
 `artifacts/stage3-comma-chunk1/validation_report.json`을 참고한다.
-추가로 조향 보정 실험 v1과 route 분할을 완료했다. 영점 −0.2455도·직진 ±1.5도, 학습 156개/검증 31개다. 상세는 `docs/stage3-calibration-v1.md`와 `artifacts/stage3-comma-chunk1-calibrated-v1/`을 참고한다. Stage3 모델 파이프라인도 구현 완료했다. `docs/stage3-pipeline-runbook.md` 참고. 테스트 6개와 실제 MViTv2-S CPU 학습·저장·재로딩·추론 스모크가 통과했다. GPU 번들은 `artifacts/stage3-gpu-smoke.zip`이며 다음은 Kaggle GPU 스모크 실제 PASS 확인이다.
-초기 구간별 중앙값 라벨은 보존했고 v1은 별도 생성했다. v1도 센서 proxy와 표본 검수로 정한 실험용이며 공식 정답은 아니다. 본 학습은 미진행이다.
+추가로 조향 보정 실험 v1과 route 분할을 완료했다. 영점 −0.2455도·직진 ±1.5도, 학습 156개/검증 31개다. 상세는 `docs/stage3-calibration-v1.md`와 `artifacts/stage3-comma-chunk1-calibrated-v1/`을 참고한다. Stage3 모델 파이프라인도 구현 완료했다. `docs/stage3-pipeline-runbook.md` 참고. 테스트 6개와 실제 MViTv2-S CPU 학습·저장·재로딩·추론 스모크가 통과했다. GPU 번들은 `artifacts/stage3-gpu-smoke.zip`이며 실행 노트북 `notebooks/Stage3_GPU_Smoke.ipynb`와 반환 ZIP 검사기 `src/validate_stage3_gpu_result.py`도 준비했다. Kaggle CLI 로그인 연결 후 비공개 Dataset 업로드와 T4 GPU 노트북 실행을 완료했고, 반환 ZIP의 로컬 검증도 PASS했다. 학습 1스텝·체크포인트 재로딩·공개 CUDA 추론 함수의 4시점 출력을 확인했다. 결과는 `artifacts/kaggle-stage3-smoke/result-validation.json`, 노트북은 `https://www.kaggle.com/code/biadis/crashintent-stage3-gpu-check`다. 첫 GPU 환경은 torch 2.10.0+cu128 / torchvision 0.25.0+cu128이었다. 추가로 제출 requirements 6개를 독립 환경에 설치해 torch 2.8.0+cu128 / torchvision 0.23.0+cu128에서 GPU 스모크와 로컬 결과 검증도 PASS했다. 설치는 Kaggle에서 166.72초였다. `notebooks/Stage3_GPU_Compatibility.ipynb`와 `artifacts/kaggle-stage3-compatibility/result-validation.json` 참고. 전체 v1 187영상 약 4.91GB 비공개 Dataset 업로드를 완료했다(`biadis/crashintent-stage3-training-v1`). 제출 버전 T4에서 2영상/2영상, stride32, batch2, 1epoch 시험 학습도 PASS했다. 20스텝, 총 176.85초, 최대 할당 2.73GiB. 1,200개 예측으로 지표를 로컬 재계산했고 체크포인트 재로딩 전후도 일치했다. 가감속 F1 0.1068, 주행 중 조향 F1 0.0945이며 단일 클래스 예측으로 쏠린 시험 모델이다. 결과는 `artifacts/kaggle-stage3-training/result-validation.json`, 실행은 `notebooks/Stage3_Training_Trial.ipynb`다. 전체 학습 156영상/검증31영상의 첫 본 학습과 결과 회수를 완료했다. 5,928스텝, 재검증 포함 91.02분. 18,603개 예측·원본 라벨·지표 재계산과 best.pt strict 로딩 PASS다. 하지만 가감속은 모두 DECELERATING(F1 0.069475), 주행 중 조향은 모두 STRAIGHT(F1 0.221897)로 쏠렸다. 조향은 최빈 클래스 기준과 같고 가감속은 그보다 낮다. 원인 확정은 아직이며, 다음은 작은 학습 집합 과적합 검사와 로짓·클래스별 손실/배치 순서를 진단한 뒤 개선 실험이다. 학습 순서 조사에서 stride8 표본 분포는 전체와 유사하지만 마지막100배치 감속43.15%(전체 선택18.70%)로 높았다. 후반 순서 영향은 후보이며 인과관계는 미확정이다. 마지막 영상의 직진은22.67%여서 직진 쏠림까지 설명하지 못한다. 상세 `docs/stage3-full-training-v1-results.md`와 `artifacts/kaggle-stage3-full-training/result-validation.json` 참고. 최종 제출 통합은 남아 있다.
+초기 구간별 중앙값 라벨은 보존했고 v1은 별도 생성했다. v1도 센서 proxy와 표본 검수로 정한 실험용이며 공식 정답은 아니다. 전체 첫 에폭의 실행·결과 검증은 완료했으나 단일 클래스 쏠림으로 성능 개선이 필요하다.
 Stage2는 74건 개발 평가도 수행됐으며 `docs/stage2-manual-test-200.md`에 결과가 있다.
 아래 과거 기록의 Stage3 확대 보류·Stage2 추가 평가 미실행 상태보다 이 기록을 우선한다.
 ## 0. 프로젝트 한 줄 요약

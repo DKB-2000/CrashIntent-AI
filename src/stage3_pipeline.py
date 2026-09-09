@@ -119,7 +119,34 @@ def load_records(root):
     return result
 
 
-def train_batches(records, batch_size, stride, epoch):
+def mixed_clip_groups(records, stride, epoch, video_buffer_size):
+    """Shuffle endpoints across bounded groups of videos; visit each endpoint once."""
+    if stride < 1 or video_buffer_size < 1: raise ValueError('Counts must be positive')
+    rng = np.random.default_rng(SEED+epoch)
+    order = rng.permutation(len(records))
+    for start in range(0, len(order), video_buffer_size):
+        group = [int(i) for i in order[start:start+video_buffer_size]]
+        samples = [(i, end) for i in group for end in range(epoch % stride, len(records[i]['accel']), stride)]
+        rng.shuffle(samples)
+        yield group, samples
+
+
+def mixed_train_batches(records, batch_size, stride, epoch, video_buffer_size):
+    for group, samples in mixed_clip_groups(records, stride, epoch, video_buffer_size):
+        frames = {i: list(video_frames(records[i]['path'])) for i in group}
+        if any(len(frames[i]) != len(records[i]['accel']) for i in group):
+            raise ValueError('Decoded training count mismatch')
+        for start in range(0, len(samples), batch_size):
+            batch = samples[start:start+batch_size]
+            x = torch.stack([clip_tensor([frames[i][t] for t in causal_indices(end)]) for i,end in batch])
+            yield x, torch.tensor([int(records[i]['accel'][end]) for i,end in batch]), torch.tensor([int(records[i]['steer'][end]) for i,end in batch])
+        del frames
+
+
+def train_batches(records, batch_size, stride, epoch, video_buffer_size=1):
+    if video_buffer_size > 1:
+        yield from mixed_train_batches(records, batch_size, stride, epoch, video_buffer_size)
+        return
     rng = np.random.default_rng(SEED+epoch)
     for idx in rng.permutation(len(records)):
         row = records[int(idx)]
@@ -235,9 +262,10 @@ def train(args):
     fingerprints = {name:hashlib.sha256((source/name).read_bytes()).hexdigest() for name in ('split_manifest.csv','labels_train_candidate.csv','labels_validation_candidate.csv')}
     (out/'data_fingerprints.json').write_text(json.dumps(fingerprints,indent=2),encoding='utf-8')
     model_dir=out/'model'/'stage3'; model_dir.mkdir(parents=True)
-    for epoch in range(args.epochs):
+    (out/'training_config.json').write_text(json.dumps(dict(epochs=args.epochs, epoch_offset=args.epoch_offset, video_buffer_size=args.video_buffer_size, batch_size=args.batch_size, train_stride=args.train_stride, learning_rate=args.learning_rate, optimizer_restarted=True, init_checkpoint_sha256=hashlib.sha256(args.init_checkpoint.read_bytes()).hexdigest() if args.init_checkpoint else None),indent=2),encoding='utf-8')
+    for epoch in range(args.epoch_offset, args.epoch_offset+args.epochs):
         model.train(); total_loss=0.; steps=0; started=time.monotonic()
-        for x,a,s in train_batches(records['train'],args.batch_size,args.train_stride,epoch):
+        for x,a,s in train_batches(records['train'],args.batch_size,args.train_stride,epoch,args.video_buffer_size):
             optimizer.zero_grad(set_to_none=True)
             with autocast(device): loss=multitask_loss(model(x.to(device)),a.to(device),s.to(device))
             if not torch.isfinite(loss): raise RuntimeError('Nonfinite training loss')
@@ -253,7 +281,7 @@ def train(args):
         row=dict(epoch=epoch+1,steps=steps,mean_loss=total_loss/steps,seconds=time.monotonic()-started,validation=metrics)
         history.append(row)
         if score>best:
-            best=score; save_checkpoint(model,model_dir/'best.pt',dict(epoch=epoch+1,validation=metrics,data_sha256=fingerprints,seed=SEED,train_stride=args.train_stride))
+            best=score; save_checkpoint(model,model_dir/'best.pt',dict(epoch=epoch+1,validation=metrics,data_sha256=fingerprints,seed=SEED,train_stride=args.train_stride,video_buffer_size=args.video_buffer_size))
         (out/'history.json').write_text(json.dumps(history,indent=2),encoding='utf-8')
         print(json.dumps(row),flush=True)
     del optimizer, model
@@ -315,6 +343,8 @@ def main():
         if command in ('train','smoke'): p.add_argument('--output-dir',type=Path,required=True)
         if command=='train':
             p.add_argument('--epochs',type=int,default=3);p.add_argument('--train-stride',type=int,default=8)
+            p.add_argument('--video-buffer-size',type=int,default=1)
+            p.add_argument('--epoch-offset',type=int,default=0)
             p.add_argument('--learning-rate',type=float,default=1e-4)
             group=p.add_mutually_exclusive_group(required=True)
             group.add_argument('--init-checkpoint',type=Path);group.add_argument('--from-scratch',action='store_true')
@@ -323,6 +353,7 @@ def main():
         if command=='predict': p.add_argument('--data-dir',type=Path,required=True)
     args=parser.parse_args()
     if args.batch_size<1 or args.threads<1 or getattr(args,'epochs',1)<1 or getattr(args,'train_stride',1)<1: parser.error('Counts must be positive')
+    if getattr(args,'video_buffer_size',1)<1 or getattr(args,'epoch_offset',0)<0: parser.error('Invalid buffer size or epoch offset')
     torch.set_num_threads(args.threads);cv2.setNumThreads(1)
     random.seed(SEED);np.random.seed(SEED);torch.manual_seed(SEED)
     if args.command=='audit':

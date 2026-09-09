@@ -1,6 +1,8 @@
 """Behavior tests for Stage3 temporal alignment, masking and inference isolation."""
 import tempfile
 import unittest
+from unittest.mock import patch
+from stage3_pipeline import mixed_clip_groups, train_batches
 from pathlib import Path
 import cv2
 import numpy as np
@@ -32,6 +34,31 @@ def make_video(path,values,fps=10):
 class PipelineTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls): torch.set_num_threads(2);cv2.setNumThreads(1)
+
+    def test_mixed_plan_coverage_reproducibility_and_epoch_phase(self):
+        records=[dict(accel=np.zeros(19+i,dtype=int)) for i in range(9)]
+        first=list(mixed_clip_groups(records,3,1,4))
+        self.assertEqual(first,list(mixed_clip_groups(records,3,1,4)))
+        actual=[sample for group,samples in first for sample in samples]
+        expected=[(i,t) for i,r in enumerate(records) for t in range(1,len(r['accel']),3)]
+        self.assertCountEqual(actual,expected)
+        self.assertEqual(len(actual),len(set(actual)))
+        self.assertTrue(all(len(group)<=4 for group,_ in first))
+        self.assertGreater(sum(a[0]!=b[0] for a,b in zip(actual,actual[1:])),9)
+        self.assertNotEqual(first,list(mixed_clip_groups(records,3,2,4)))
+
+    def test_mixed_batches_preserve_clip_and_label_alignment(self):
+        records=[dict(path=i,accel=np.arange(19)%4,steer=np.arange(19)%3) for i in range(3)]
+        frames={i:[np.full((3,2,2),i*50+t,dtype=np.uint8) for t in range(19)] for i in range(3)}
+        seen=[]
+        with patch('stage3_pipeline.video_frames',side_effect=lambda path: iter(frames[path])):
+            for x,a,s in train_batches(records,2,3,1,3):
+                for clip,ai,si in zip(x,a,s):
+                    value=int(round(float((clip[0,-1,0,0]*.225+.45)*255)))
+                    i,end=divmod(value,50);seen.append((i,end))
+                    self.assertEqual(int(ai),end%4);self.assertEqual(int(si),end%3)
+                    torch.testing.assert_close(clip,clip_tensor([frames[i][t] for t in causal_indices(end)]))
+        self.assertCountEqual(seen,[(i,t) for i in range(3) for t in range(1,19,3)])
 
     def test_causal_padding_and_no_future(self):
         self.assertEqual(causal_indices(0).tolist(),[0]*16)
