@@ -320,3 +320,10 @@ $env:PYTHONUTF8='1'
 추가3에폭 실행 및 결과 검증 완료: `stage3-mixed-finetuning-results.md` 참고. 최적epoch3,
 가감속0.180613/주행 중 조향0.221897로 모두 최빈 클래스 고정 출력과 같다. 다음은 작은
 고정 표본 과적합·학습 신호 진단이다. 현재 실행 중인 추가 학습은 없다.
+
+
+## 첫 후보 통합 수정
+
+`docs/first-submission-candidate.md` 참고. 공식 호출의 model_dir는 Stage별 폴더이며,
+Stage3는 model_dir/best.pt를 우선 사용한다(기존 model root 호출도 지원). 추론 시 영상 FPS
+헤더를 강제하지 않고 프레임 순서로 sample_index를 생성한다. 학습용10fps 검사는 유지한다.

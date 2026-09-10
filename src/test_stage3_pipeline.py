@@ -105,6 +105,20 @@ class PipelineTests(unittest.TestCase):
             pd.DataFrame([dict(ID='a',route='same',split='train',video='a.mp4'),dict(ID='b',route='same',split='validation',video='b.mp4')]).to_csv(root/'split_manifest.csv',index=False)
             with self.assertRaisesRegex(ValueError,'Route leakage'): load_records(root)
 
+    def test_inference_uses_frame_order_not_container_fps(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'header20.mp4';make_video(path,[10,30,60],20)
+            result=predict_video(Recorder().eval(),path,'header20',torch.device('cpu'),2)
+            self.assertEqual(result.sample_index.tolist(),[0,1,2])
+
+    def test_public_entrypoint_accepts_official_stage_model_directory(self):
+        from stage3_pipeline import predict_stage3
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'videos').mkdir();stage=root/'model/stage3';stage.mkdir(parents=True);(stage/'best.pt').touch()
+            with patch('stage3_pipeline.device_for',return_value=torch.device('cpu')), patch('stage3_pipeline.load_model',return_value=Recorder()) as loader:
+                predict_stage3(root,stage);self.assertEqual(loader.call_args.args[0],stage/'best.pt')
+                predict_stage3(root,root/'model');self.assertEqual(loader.call_args.args[0],stage/'best.pt')
+
     def test_wrong_fps_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'wrong.mp4';make_video(path,[10,20],20)

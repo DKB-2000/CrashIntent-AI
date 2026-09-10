@@ -3,7 +3,143 @@
 이 문서는 Claude Code 세션의 토큰 예산 소진으로 작업을 Codex(또는 다른 에이전트)가 이어받기 위한 인계 문서입니다.
 이 문서 하나만 읽어도 프로젝트 전체 맥락과 "지금 어디서부터 이어가야 하는지"를 알 수 있게 구성했습니다.
 
-## 최신 재개 지점 (2026-09-09)
+## 최신 재개 지점 (2026-09-10)
+
+**Stage3 사람 검증셋 도구·안내 준비:** 사용자 직접 검수 요청. src/review_stage3_human.py(구간별조향/운동상태,UNKNOWN,자동저장,재개,해시검증), scripts/Start-Stage3HumanReview.ps1, docs/stage3-human-validation-guide.md 및 docs/templates/stage3-human-sources.csv. 기본공개예제 FPS헤더오류는 명시적 -Assume10Hz 필요. src/score_stage3_human.py는 사람MOVING/확정조향만채점. 2단위테스트+5영상5992시점 사전검사+채점제외스모크PASS. GUI키입력 수동시험은아직. 실제사람라벨 미생성, artifacts 스모크자료는정답아님.
+
+
+**Stage3 라벨/영상 감사 완료:** docs/stage3-label-audit.md. 112205라벨 생성식 일치,187영상 timestamp frame_times[::2]일치. 뚜렷한 pose회전 방향일치약97.8%, 전반적좌우반전 근거없음. 원본/변환3영상60시점 프레임매핑 일치. 명목10Hz 대비최대0.45초드리프트는 이표본의 라벨정렬오류가 아님. 7클립42프레임 육안표본에서 완만한곡선추종 LEFT/RIGHT 확인, 공식범주 의미동등성 미확정. 전체부호교환/시간이동/추가학습은 보류. 다음은 공개영상 수동검증 기준·표본 구성. 자료 artifacts/stage3-label-audit-20260910/review.html.
+
+
+**최우선: 공식 Stage3 하락, 추가학습 보류:** 사용자 제출86692/프로토_2026_09_10_002, 2026-09-10 13:56:59,13분40초. Stage1 0.4045598914/Stage2 0.2096390642/Stage3 0.1331824102. 사용자 업로드 경로 artifacts/stage3-submit-candidate-20260910 확인, ZIP재해시 cec269d... 일치. Stage3만교체,7개 핵심함수 AST일치. 직전Stage3 0.1656369753 대비19.59%하락. 외부검증 개선은 공식으로 이전되지 않았음. 기존 추가12에폭은 보류하고 외부proxy/평가분포 차이 및 모델 입력별 오작동 조사 우선. 원인 미확정. 상세 docs/submission-history.md, artifacts/stage3-submission-86692-audit.json.
+
+
+**제출86692 Stage3 하락(사용자 보고):** 프로토_2026_09_10_002, 13:56:59,13분40초.
+Stage1 .4045598914 / Stage2 .2096390642 / Stage3 .1331824102. 직전Stage3 .1656369753보다 하락,
+가중합 .21804056804. 최고보고조합은 직전_001(.23102239408). 실제업로드ZIP해시는 미확인.
+외부 검증 개선만으로 확대 모델을 승격하지 말고 모델연결·출력동등성·검증분포를 먼저 조사한다.
+docs/submission-history.md 참고.
+
+
+**Stage3 추가12에폭 준비 완료·업로드 차단:** 동일1000클립, 기존확대모델 가중치 시작/AdamW초기화. 로컬2테스트와 기존결과재검증PASS. artifacts/kaggle-stage3-continuation-20260910 및 docs/stage3-continuation.md 참고. 기존비공개 biadis/crashintent-stage3-optimization-assets로 모델+코드 업로드가 자동승인검토의 구체적대상·자료 승인 미확인 사유로 거절됨. GPU 및 watcher 아직 미실행. 준비된 자료에 대한 구체적 사용자 승인 대기.
+
+
+**Stage1 전체 합성·검증·번들 완료(14:36):**1110원본→3330영상(학습2640/검증690),
+전166500프레임·해시·출처분리 검사PASS. artifacts/stage1-full-preparation-20260910/status.json은
+BUNDLE_READY_NOT_UPLOADED. artifacts/kaggle-stage1-full-20260910/에 balanced-v2 본 학습 번들
+4,411,579,071bytes 준비 완료. SHA256 069fad70203ea83c036205841257b36ef1e1cefc8a7f60705518e82193138758.
+전체 번들 업로드·GPU 본 학습은 아직 미실행이다. 아래 생성 중 기록보다 이 완료 상태를 우선한다.
+
+
+**Stage3 오류 분석 완료:** 사용자 점수는 별도 전달 예정, 공식점수 대기와 독립적으로 클래스·경로·전환별 분석 완료. docs/stage3-error-analysis.md 및 artifacts/stage3-error-analysis-20260910/ 참고. 가속재현율20.16%, 우회전25.86%. 조향4경로 중08-02는0.3712→0.2777 하락, 직진재현율1.75%. 안정구간도 조향정확도46.30%. 동일1000클립 추가12에폭 실험 계획작성(AdamW재초기화 명시), GPU는 아직 미실행. 기존 후보ZIP 보존.
+
+
+**새 Stage3 제출 후보 GPU 통합 완료:** biadis/crashintent-stage3-candidate-check v1 COMPLETE, 자동 회수 및 로컬 독립검증PASS. 후보 artifacts/stage3-submit-candidate-20260910/submit.zip (303597984 bytes), SHA256 cec269d3975db3d55a734505e40a3c03d8c43775e02fc887c2cfeba132964337. Stage3만 확대모델 교체, 기존Stage1/2 유지. 설치145.5초, Stage1/2 각5행,Stage3 1200행82.41초. docs/stage3-submit-candidate.md 및 artifacts/kaggle-stage3-candidate-20260910/result-validation.json 참고. 아래 RUNNING 기록보다 이 완료 결과 우선. 대회 실제 제출 미실행, selected.json 변경 없음.
+
+
+**새 Stage3 제출 후보 GPU 검사 실행 중:** 사용자 요청으로 Stage2 개선 후보에서 Stage3만 확대 모델로 교체. artifacts/stage3-submit-candidate-20260910/submit.zip, SHA256 cec269d3975db3d55a734505e40a3c03d8c43775e02fc887c2cfeba132964337, 정적PASS. 기존 비공개 candidate-assets 데이터셋 버전 업로드 완료, biadis/crashintent-stage3-candidate-check v1 RUNNING. 자동 회수·검증 watcher PID26644; artifacts/kaggle-stage3-candidate-20260910/remote-run.json 및 monitor.log 확인, 중복 실행 금지. docs/stage3-submit-candidate.md 참고. 대회 제출 및 selected.json 변경 없음.
+
+
+**Stage3 1000클립 확대 실험 완료:** biadis/crashintent-stage3-expanded-trial v1 COMPLETE, 자동 결과 회수 및 독립검증PASS. 12에폭/1200업데이트,31영상18603행,98분30초. 검증 가감속F1 0.461828 / 조향0.409353 (이전0.307496/0.293618). 주행 중 RIGHT예측19.3%로 이전70% 쏠림 완화. docs/stage3-expanded-trial.md 완료 절 및 artifacts/kaggle-stage3-expanded-20260910/result-validation.json 참고. 아래 RUNNING 기록보다 이 완료 결과 우선. 다음 작업은 새 Stage3 제출 후보 패키징·GPU 통합검사이며 아직 새 ZIP 없음.
+
+
+**Stage3 1000클립 확대 실험 실행 중:** 사용자 승인으로 `biadis/crashintent-stage3-expanded-trial` v1 RUNNING 확인. 전체156학습영상/17경로에서 균형1000클립, scratch FP32 batch10 lr3e-5, 12에폭/1200업데이트 계획. 검증은 같은31영상. 예상1.5~2시간, runner최대2시간. 자동 회수·재검산 watcher PID13156 시작; `artifacts/kaggle-stage3-expanded-20260910/remote-run.json`, monitor.log 확인하고 중복 실행 금지. docs/stage3-expanded-trial.md 참고. 기존200클립 결과0.307496/0.293618과 비교 후 개선시 패키징·통합검사 진행. 아직 결과 및 새 제출 ZIP 없음.
+
+
+**Stage1 후속 검증·번들 준비 실행 중(11:16):** 생성543/1110원본 상태에서
+`src/prepare_stage1_full_run.py`를 숨김 실행했다. 완료된 영상부터 전 프레임/해시/출처검사 후
+전체3330영상이 통과하면 `artifacts/kaggle-stage1-full-20260910/` 로컬 번들을 자동 생성한다.
+상태는 `artifacts/stage1-full-preparation-20260910/status.json`, 오류는 preparation-error.log.
+첫15원본/45영상 검사 성공. 외부 업로드·GPU 본 학습은 아직 하지 않는다. 중복 실행하지 않는다.
+
+
+**Stage1 본 학습 코드 balanced-v2 반영 완료:** 사용자 요청으로 균형 유효배치8(원본4/재녹화4),
+정확한 누적손실, lr1e-4 고정·규제비활성·head warmup없음, 최소120업데이트를 반영했다.
+전체6에폭 계획은2640 optimizer updates다. 실행번들·노트북·결과검사기까지 연결,7테스트PASS.
+GPU 본 학습은 이번 작업에서 실행하지 않았다. docs/stage1-full-training.md의 balanced-v2 절 참고.
+
+
+**Stage1 쏠림 진단 완료:** Notebook optimization-check version1 COMPLETE, 4조건×120업데이트,
+약25분 및 독립검증PASS. 모든 조건에서 학습30클립 F1=1.0. 검증30영상 F1은 기존누적0.7778,
+전체가중치정규화0.5833, 균형lr2e-5 0.7205, 균형lr1e-4 0.8295. 검증2출처의 소량 진단이며
+기존 손실 방식도 학습에 성공해 원인을 하나로 단정하지 않는다. 전체 합성은 아직 생성 중이다.
+docs/stage1-optimization-diagnostic.md의 완료 절을 우선한다. 진단용 제출 가중치는 없다.
+
+
+**Stage1 작은 표본 진단 준비:** 사용자가 Stage3은 별도 세션에 맡기고 Stage1 쏠림 진단을 요청했다.
+기존 microbatch별 weighted mean 누적과 전체 배치 CE가 다름을 로컬 기울기 검사로 확인했다.
+같은 표본·초기화의 손실 정규화/균형배치/학습률4조건, 최대120업데이트 GPU 진단을 준비했다.
+새 코드·메타데이터7052bytes 전송은 처음 차단됐으나 사용자가 명시적으로 승인해 업로드·GPU 실행을 완료했다.
+Notebook biadis/crashintent-stage1-optimization-check version 1 RUNNING, 자동 회수·검증 watcher 실행 중이다.
+artifacts/kaggle-stage1-optimization-20260910/remote-run.json과 monitor.log를 확인하고 중복 실행하지 않는다.
+아직 GPU 결과는 미확보다. docs/stage1-optimization-diagnostic.md 참고.
+
+
+**최신 제출 결과(사용자 보고):** 프로토_2026_09_10_001, 표시 시각2026-09-10 09:24:27.
+Stage1 0.4045598914 / Stage2 0.2096390642 / Stage3 0.1656369753.
+로컬 가중합0.23102239408, 첫 제출 대비+0.01993517008이며 Stage2만+0.0498379252 상승했다.
+누적 사용자 보고 제출2회. 업로드 ZIP 해시·서버 제출 ID·소요 시간은 미제공.
+docs/submission-history.md 참고. Stage3 우선 개선은 유지한다.
+
+**Stage3 최신 진단 돌파:** 같은10개 학습 클립에서 새 초기화·FP32·규제 비활성·유효 배치10은
+lr1e-4 및3e-5 모두120스텝에 가감속/주행 중 조향100% 과적합을 달성했다.
+기존 쏠림 모델은 같은 배치·lr3e-5에서도40%/33.3%였다. 독립 로컬 검증PASS
+(입력·라벨·체크포인트·코드 해시 및 전 시점 로짓 기반 손실·정답률 재계산).
+Notebook biadis/crashintent-stage3-optimization-check version1 COMPLETE, runner약21분50초.
+이번 진단은 완료됐고 제출 모델을 바꾸지 않았다. 다음은 새 초기화·큰 유효 배치의
+작은 학습 집합과 독립 route 검증으로 일반화 및 쏠림 해소 여부를 확인하는 것이다.
+상세 docs/stage3-optimization-diagnostic.md, artifacts/kaggle-stage3-optimization-20260910/result-validation.json.
+아래 실험 진행 중·과적합 미달 상태보다 이 완료 결과를 우선한다.
+
+**Stage1 최신 결과(2026-09-10 10:04):** 사전 GPU version 1 COMPLETE, 6에폭/24 optimizer updates,
+반환 ZIP 회수 및 `artifacts/kaggle-stage1-trial-20260910/validated/result-validation.json` PASS.
+자동 회수 cp949 오류는 UTF-8 설정으로 복구했다. 합성 검증 F1 baseline0.25→0.4지만
+새 모델도 전부 RERECORDED로 판별 성능 개선은 미확인이다. 전체 합성은 생성 중이다.
+10:03 기준140/1110원본, 합성13시전후·바로 이어 실행 시 첫 본 학습 결과16~17시 조건부 예상.
+아래 RUNNING/모니터링 기록보다 이 결과를 우선한다. docs/stage1-full-training.md 참고.
+
+**Stage1 본 학습 착수(사용자 우선순위 3번 요청):** `docs/stage1-full-training.md` 참고.
+CCD 1,500개 실재 확인. 휴대전화 holdout 및 같은 출처 형제까지 390개 제외,
+학습 880원본/85출처 + 합성검증 230원본/21출처, 총 3,330영상 로컬 생성 중이다.
+첫 20원본/60영상의 전 프레임·분할 검사 PASS. FP32 학습 코드와 결과 검사기 준비.
+GPU 사전 번들 `artifacts/kaggle-stage1-trial-20260910/` 약190MB 준비 완료.
+비공개 Kaggle 전송은 자동 승인 검토에서 구체적 자료·목적지 승인이 없다는 사유로
+차단됐으나 사용자가 이 대화에서 약190MB 사전 번들 전송·무료 T4 실행을 명시적으로 승인해 업로드를 재개했다. GPU 완료 모델 확보로 취급하지 않는다.
+전체 생성 로그: `artifacts/stage1-full-generation-20260910.log`.
+비공개 Dataset ready 및 Notebook `biadis/crashintent-stage1-trial-v1` version 1 RUNNING 확인.
+`src/watch_stage1_trial.py`가 결과 자동 회수·검증 중이다. `artifacts/kaggle-stage1-trial-20260910/remote-run.json`과 monitor.log를 확인하고 중복 실행하지 않는다.
+
+
+**현재 우선 작업:** 사용자가 Stage2 제출 점수는 별도 전달하고 Stage3 쏠림 진단을 먼저
+진행하도록 지시했다. 동일 10클립의 FP32 배치·학습률 대조 4조건을 준비했고
+기울기 누적 동등성 테스트 2개 PASS. 새 비공개 Kaggle Dataset에 코드 전송은 자동
+승인 검토가 처음 거절했으나 사용자가 구체적으로 승인해 비공개 Dataset 생성 및 GPU 실행을 시작했다. 현재 biadis/crashintent-stage3-optimization-check version 1을 추적한다. 중복 실행하지 않는다.
+docs/stage3-optimization-diagnostic.md 참고.
+
+**최신 GPU 결과:** Stage2 개선 후보 ZIP의 새 비공개 Kaggle 통합 검사를 완료하고
+반환 ZIP 로컬 검증도 PASS했다. Notebook biadis/crashintent-stage2-candidate-check version 1
+COMPLETE, 후보 SHA256 c0e8f2e3fc5847650e2e4a63f3e2b48e4058ad34edfbfe24a9a05333a4cf7047.
+설치 186.60초, Stage1 5행/Stage2 5행/Stage3 1200행. 검증 보고서는
+artifacts/kaggle-stage2-candidate-20260910/result-validation.json. 실제 대회 제출은 미실행.
+아래 GPU 준비·승인 대기 기록보다 이 결과를 우선한다. docs/stage2-improved-candidate.md 참고.
+
+**최신 성능 작업:** Stage2 soft_mixed_scene 후보를 독립 재검증했다. 동일 개발 검증
+15영상/5출처에서 네 항목 평균 0.6000(수동 라벨 대조군 0.4333), 원본 CSV 해시·출처 분리,
+저장 예측·실제 ZIP 모델 클래스 출력 일치 PASS. 원본 1영상 특징 재추출도 정확 일치했다.
+별도 ZIP artifacts/stage2-submit-candidate-20260910/submit.zip 생성 및 정적 검사 PASS.
+GPU 검사 입력 344.6MB와 노트북을 준비했으나 새 비공개 Kaggle Dataset 전송은
+처음 자동 승인 검토에서 거절됐으나 2026-09-10 사용자가 명시적으로 승인해 업로드·GPU 검사를 재개했다. 같은 범위의 비공개 Kaggle 업로드·GPU 검사는 재확인 없이 진행하도록 승인했다. 일일 배포 후보는 변경하지 않았다.
+상세 docs/stage2-improved-candidate.md. Stage3 FP32 대조 3조건×240스텝 결과도
+독립 검증했고 과적합 실패가 지속된다. docs/stage3-overfit-diagnostic.md의 최신 절 참고.
+Stage1 로컬 메타데이터가 과거 Stage3 원격 실행을 가리키므로 Stage1 완료로 취급하지 않는다.
+
+**사용자 확정 목표:** 최종 1차 평가 상위 15위 이내 진입으로 2차 평가에 진출한다.
+2026-09-10 사용자 제공 순위표에서 15위 장재홍은 Stage1 0.84684 / Stage2 0.4073 /
+Stage3 0.72274이며 표시 점수 가중합은 약 0.621384다. 우리 첫 제출 가중합은 0.211087224다.
+세 점수의 순서는 사용자가 Stage1·2·3으로 명시했다. 현재 15위는 비교 기준이며 최종 진출선은 아니다.
+상세는 `docs/submission-history.md` 참고.
+
+**최우선 최신 결과:** 첫 제출 후보 `artifacts/first-submit-candidate-v3/submit.zip`(303,672,145 bytes)을 만들고 공개 예제 GPU 통합 PASS했다. Stage1/2는 기존 baseline, Stage3는 혼합학습epoch3. 공개 Stage3 FPS 헤더 검사와 공식 Stage별 model_dir 경로를 수정했고 회귀10테스트 PASS. Stage1 5행/Stage2 5행/Stage3 1200행 검증, ZIP 해시 및 CPU 로짓 일치 PASS. 2026-09-09 사용자 보고로 최초 1회 제출 완료를 기록했다. 2026-09-10 사용자 보고로 1번 제출 평가 완료를 반영했다. 표시 시각 2026-09-09 17:51:28, 점수는 Stage1 0.4045598914 / Stage2 0.159801139 / Stage3 0.1656369753, 평가 소요 시간 13분 54초(834초)다. 사용자가 Stage1·2·3 순서임을 확인했으며 로컬 계산 종합점수는 0.211087224다. 제출 이력은 `docs/submission-history.md` 참고. 상세 `docs/first-submission-candidate.md`. 소량10클립 과적합 진단도 실행했으나180스텝에서 충분히 학습되지 않았고 기존 모델의 입력별 로짓이 거의 같았다. 다음 성능 작업은 FP32/규제 비활성 대조 및 scaler skip 진단이다(`docs/stage3-overfit-diagnostic.md`). 후보는 실행 검증용이며 Stage2 미학습 항목과 Stage3 최빈 클래스 쏠림이 남아 있다. 이번에 실행한 과적합 진단과 후보 통합 GPU 검사는 완료됐다.
 
 **최신 결과:** 영상8개 혼합 배치 추가3에폭(누적2~4)이 완료됐고 결과 ZIP·최적 모델 회수 및 로컬 검증 PASS다. 총17,550스텝, runner3시간42분. 최적은epoch3. 가감속 F1 0.180613, 주행 중 조향 F1 0.221897이지만 예측은 모두 CONSTANT/STRAIGHT로 최빈 클래스 기준과 같다. 단일 클래스 쏠림이 해결되지 않았다. 상세 `docs/stage3-mixed-finetuning-results.md`, `artifacts/kaggle-stage3-mixed-training/result-validation.json` 참고. 다음은 클래스가 섞인 작은 고정 표본 과적합 및 로짓·gradient·가중치 변화 진단이다. 신규 학습은 아직 시작하지 않았다. 데이터·모델·결과는 artifacts에 있어 Git 제외이며, 다른 PC에서는 Kaggle 출력에서 회수한다.
 
@@ -153,3 +289,17 @@ codex
 **상위 폴더 원본과는 이제 별개 사본**이라는 점을 기억할 것 — 나중에 Claude Code 세션으로 돌아가면 두 사본(원본
 `../dacon-236753-대회안내.md`, `../.claude/agents/*.md` vs 이 폴더의 `docs/*`) 중 어느 쪽이 최신인지 비교해서 반드시
 동기화해야 한다. 이 `CODEX_HANDOFF.md`는 방향이 크게 바뀌었을 때만 "완료된 것/미완료" 섹션을 갱신하면 된다.
+
+## 완료: Stage3 짧은 독립 경로 검증 (2026-09-10)
+
+사용자 요청에 따라 `biadis/crashintent-stage3-short-route-trial` v1 GPU 실행 시작, RUNNING 확인. 중복 실행하지 말 것. 기존 승인된 비공개 optimization-assets 데이터셋에 새 코드 버전 업로드 완료. 학습 34영상/17경로/균형 200클립, scratch FP32 batch10 lr3e-5 최대240업데이트, 검증 기존31영상/4경로 전체. 결과 대기 중. 세부 및 다운로드/독립 검증 명령은 `docs/stage3-route-trial.md`; 로컬 실행 기록은 `artifacts/kaggle-stage3-route-trial-20260910/launch.json`. 제출 가중치 및 ZIP 변경 없음.
+
+Stage3 짧은 실험 최신 완료: biadis/crashintent-stage3-short-route-trial v1 COMPLETE, 12에폭/240업데이트, 검증31영상/18603행 독립 재계산 PASS. 가감속 F1 0.180613→0.307496, 조향0.221897→0.293618. 약41분11초. 조향 RIGHT 약70% 편향은 남음. 외부 대리 검증이며 공식 제출 점수 아님. 결과 회수 완료이므로 재실행하지 말 것. docs/stage3-route-trial.md의 완료 결과를 이전 RUNNING 기록보다 우선. 다음은 균형 학습 표본 확대 검증.
+
+## Stage1 전체 업로드 승인 후 자동 본학습 대기 (2026-09-10 14:55)
+
+사용자 명시적 승인으로4.41GB 비공개 full-v1-assets 업로드 시작.
+숨김 launcher PID32984가 Dataset ready 후 biadis/crashintent-stage1-full-v1을 한 번 실행하고
+결과를 회수·검증한다. GPU 시작 여부는 artifacts/kaggle-stage1-full-20260910/remote-run.json과
+Kaggle status로 확인할 것. 아직 작성 시점 GPU RUNNING 미확인. 중복 실행 금지.
+상세 docs/stage1-full-training.md 마지막 절. 같은 범위 업로드·무료 T4 실행 재승인 불필요.

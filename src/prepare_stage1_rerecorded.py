@@ -124,7 +124,11 @@ class H264Writer:
     def __init__(self, destination: Path, width: int, height: int, fps: float, crf: int):
         ffmpeg = shutil.which("ffmpeg")
         if ffmpeg is None:
-            raise RuntimeError("ffmpeg is required but was not found on PATH")
+            try:
+                import imageio_ffmpeg
+                ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+            except ImportError as exc:
+                raise RuntimeError("Install ffmpeg on PATH or imageio-ffmpeg") from exc
         destination.parent.mkdir(parents=True, exist_ok=True)
         self.process = subprocess.Popen(
             [

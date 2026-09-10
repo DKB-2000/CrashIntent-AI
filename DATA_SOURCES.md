@@ -342,3 +342,27 @@ Chunk_1의 학습 17 route에서 IMU·pose를 비교해 영점 −0.2455도와 �
 검수 영상 14개와 전체 1,120프레임 디코딩, 분할·라벨 검사 및 코드 테스트 4개가 통과했다.
 공식 정답 기준이나 차량·지역 일반화를 확정한 결과는 아니다. 근거·한계·실행법은
 `docs/stage3-calibration-v1.md` 참고. 다음은 v1 기반 Stage3 모델 파이프라인/GPU 스모크 준비다.
+
+### Stage1 전이학습 실험용 모델 (2026-09-09)
+
+- torchvision `MViT_V2_S_Weights.KINETICS400_V1`, Kinetics-400 사전학습.
+- 공식 배포 파일: https://download.pytorch.org/models/mvit_v2_s-ae3be167.pth
+- 모델 문서: https://docs.pytorch.org/vision/0.23/models/generated/torchvision.models.video.mvit_v2_s.html
+- torchvision 코드 라이선스 BSD-3-Clause와 원 학습 데이터 권리는 구분한다. 기존 Stage1 코드의
+  사전학습 옵션을 80개 CCD 원본 합성 실험에 적용한다. 모델 정확도나 데이터 권리의 별도 인증은 아니다.
+- 실제 다운로드 및 학습 성공 여부와 사용 버전은 `artifacts/kaggle-stage1-trial/` 결과를 따른다.
+- 합성용 `imageio-ffmpeg==0.6.0`은 로컬 환경에 이미 설치되어 있었으며, PATH에 FFmpeg가 없을 때
+  이 패키지의 바이너리를 사용하는 fallback을 추가했다. 제출 requirements에는 추가하지 않는다.
+
+### Stage1 본 학습 데이터 준비 (2026-09-10)
+
+같은 CCD 1,500원본에서 phone holdout 30개 및 같은 youtubeID의 형제를 포함해 390개를
+제외했다. 1,110원본을 학습 880개/85출처와 합성 검증 230개/21출처로 분리했다.
+원본당 ORIGINAL 1개 + 합성 RERECORDED 2개, 총 3,330개 생성에 착수했다.
+첫 20원본/60영상 생성·전 프레임 디코딩을 완료했고 전체 생성은 진행 중이다.
+`src/prepare_stage1_training.py`가 효과·seed·원본 및 출력 SHA256과 분할을 기록한다.
+산출물은 `artifacts/stage1-full-20260910/`이며 실제 휴대전화 재촬영본은 아직 없다.
+위 Kinetics-400 FP32 학습 코드를 준비했으나 Kaggle 전송은 자동 승인 검토에서 차단되어
+사용자 승인을 받은 뒤 약190MB를 비공개 업로드하고 GPU 사전 학습 version 1을 실행했다.
+전체 본 학습 완료 결과는 아직 없다. 새 외부 데이터는 추가하지 않았으며
+기존 CCD 출처·이용조건을 그대로 적용한다. 상세 `docs/stage1-full-training.md` 참고.

@@ -134,6 +134,7 @@ def train_and_smoke(args: argparse.Namespace) -> dict:
 
     model = Stage1MViT(pretrained=args.pretrained).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
+    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
     last_loss = None
     for _ in range(args.epochs):
         model.train()
@@ -147,8 +148,11 @@ def train_and_smoke(args: argparse.Namespace) -> dict:
             if not torch.isfinite(loss):
                 raise RuntimeError(f"non-finite loss for {row['relative_path']}")
             optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.)
+            scaler.step(optimizer)
+            scaler.update()
             last_loss = float(loss.detach().cpu())
 
     checkpoint_path = model_dir / "best.pt"

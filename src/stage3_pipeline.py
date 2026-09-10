@@ -65,12 +65,12 @@ def clip_tensor(frames):
     return (torch.from_numpy(np.stack(frames)).permute(1, 0, 2, 3).float()/255 - .45)/.225
 
 
-def video_frames(path):
+def video_frames(path, require_10fps=True):
     cap = cv2.VideoCapture(str(path))
     if not cap.isOpened(): raise ValueError(f'Cannot open video: {path}')
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
-    if not np.isclose(fps, 10, atol=.01):
+    if require_10fps and not np.isclose(fps, 10, atol=.01):
         cap.release(); raise ValueError(f'Expected 10fps, got {fps}: {path}')
     count = 0
     try:
@@ -198,7 +198,7 @@ def predict_video(model, path, sid, device, batch_size=4):
         for ai, si in zip(a.argmax(1).cpu().tolist(),s.argmax(1).cpu().tolist()):
             rows.append(dict(ID=sid, sample_index=len(rows), accel_label=ACCEL[ai], steer_label=STEER[si]))
         pending.clear()
-    for frame in video_frames(path):
+    for frame in video_frames(path, require_10fps=False):
         if not history: history.extend([frame]*15)
         history.append(frame)
         pending.append(clip_tensor(history))
@@ -216,7 +216,9 @@ def predict_paths(model, paths, device, batch_size=4):
 def predict_stage3(data_dir, model_dir):
     """Competition entrypoint: independent dense predictions, CUDA, offline."""
     device = device_for('cuda')
-    model = load_model(Path(model_dir)/'stage3'/'best.pt', device)
+    checkpoint = Path(model_dir)/'best.pt'  # official caller passes model/stage3
+    if not checkpoint.is_file(): checkpoint = Path(model_dir)/'stage3'/'best.pt'
+    model = load_model(checkpoint, device)
     paths = sorted(p for p in (Path(data_dir)/'videos').iterdir() if p.suffix.lower() in {'.mp4','.avi','.mov','.mkv','.hevc'})
     return predict_paths(model,paths,device)
 
