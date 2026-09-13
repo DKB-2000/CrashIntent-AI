@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "scope": "Human development review; not competition labels",
+  "videos": {
+    "REVIEW_001": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_001.mp4",
+      "sha256": "47e15d35bd14c2e1da0b62b7a76d862258d21df3a1696511bb17e2b9be8d05de",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "UNKNOWN",
+          "motion": "STOPPED"
+        }
+      ]
+    },
+    "REVIEW_002": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_002.mp4",
+      "sha256": "98f26b2b3eb94b0bc388117b4eeec71855c30045b1c6c0bf7fa08a62ba6bf649",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "UNKNOWN",
+          "motion": "STOPPED"
+        }
+      ]
+    },
+    "REVIEW_003": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_003.mp4",
+      "sha256": "8ad24d35ed6952e8bedb43c967fd4ab8d090f80936e2a0a6267d160a52bfaea2",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "STRAIGHT",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_004": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_004.mp4",
+      "sha256": "23a9cf858b3b4555cb44e3a7b90f704993f03b8997fa070f81c1a46e9aae77eb",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "STRAIGHT",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_005": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_005.mp4",
+      "sha256": "ec5670da3853a36bdc9c9a0f3f24cbbf983d3dd33d3f064c8ecfc62f571248dc",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "LEFT",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_006": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_006.mp4",
+      "sha256": "7633120a08f8cf327874829ca32757156cbf7ca3f1b906c3204fbbd975153cf6",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "UNKNOWN",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_007": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_007.mp4",
+      "sha256": "42e79ba62ddcbfdb5a9ed1cd5a04ae1ba188915d0f56153fc197428ac3d41804",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "LEFT",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_008": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_008.mp4",
+      "sha256": "a5bff9a99d9fdccce5e97d0edc29ca01fd435c937d7e8439aaefec1edb25d909",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "STRAIGHT",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_009": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_009.mp4",
+      "sha256": "6b584cbb49fce6990327445e7693558d6e21ff49c42ca82070d395e5542832ba",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "UNKNOWN",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_010": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_010.mp4",
+      "sha256": "c5037827a73eccb0ba3a6f965cb1401d39254bdaf6dcf72e9f49c4e2688a9f1d",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "UNKNOWN",
+          "motion": "STOPPED"
+        }
+      ]
+    },
+    "REVIEW_011": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_011.mp4",
+      "sha256": "7e46f496b33d30ef4cedecbaf9e43a5971f952709dad3dff7ed17dadaa120c18",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "STRAIGHT",
+          "motion": "MOVING"
+        }
+      ]
+    },
+    "REVIEW_012": {
+      "path": "C:\\Crash_AI\\CrashIntent-AI\\artifacts\\stage3-local-review-20260913\\videos\\REVIEW_012.mp4",
+      "sha256": "93b9724be36bf45e3e39e5d99e2606a5242ca42d799e62e769c2f842544cd428",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": [
+        {
+          "start": 0,
+          "end": 49,
+          "steer": "UNKNOWN",
+          "motion": "STOPPED"
+        }
+      ]
+    }
+  }
+}

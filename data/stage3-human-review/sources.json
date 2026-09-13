@@ -1,0 +1,103 @@
+{
+  "seed": 20260913,
+  "selection": "New random CCD sample, not the missing 20260911 selection; no model predictions used",
+  "scope": "Human development diagnostic only; training overlap not audited; not independent generalization evaluation",
+  "videos": [
+    {
+      "ID": "REVIEW_001",
+      "source_id": "000196",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000196.mp4",
+      "sha256": "47e15d35bd14c2e1da0b62b7a76d862258d21df3a1696511bb17e2b9be8d05de",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_002",
+      "source_id": "001275",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\001275.mp4",
+      "sha256": "98f26b2b3eb94b0bc388117b4eeec71855c30045b1c6c0bf7fa08a62ba6bf649",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_003",
+      "source_id": "000389",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000389.mp4",
+      "sha256": "8ad24d35ed6952e8bedb43c967fd4ab8d090f80936e2a0a6267d160a52bfaea2",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_004",
+      "source_id": "000477",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000477.mp4",
+      "sha256": "23a9cf858b3b4555cb44e3a7b90f704993f03b8997fa070f81c1a46e9aae77eb",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_005",
+      "source_id": "000763",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000763.mp4",
+      "sha256": "ec5670da3853a36bdc9c9a0f3f24cbbf983d3dd33d3f064c8ecfc62f571248dc",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_006",
+      "source_id": "000770",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000770.mp4",
+      "sha256": "7633120a08f8cf327874829ca32757156cbf7ca3f1b906c3204fbbd975153cf6",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_007",
+      "source_id": "000862",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000862.mp4",
+      "sha256": "42e79ba62ddcbfdb5a9ed1cd5a04ae1ba188915d0f56153fc197428ac3d41804",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_008",
+      "source_id": "000681",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000681.mp4",
+      "sha256": "a5bff9a99d9fdccce5e97d0edc29ca01fd435c937d7e8439aaefec1edb25d909",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_009",
+      "source_id": "000105",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000105.mp4",
+      "sha256": "6b584cbb49fce6990327445e7693558d6e21ff49c42ca82070d395e5542832ba",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_010",
+      "source_id": "000747",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000747.mp4",
+      "sha256": "c5037827a73eccb0ba3a6f965cb1401d39254bdaf6dcf72e9f49c4e2688a9f1d",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_011",
+      "source_id": "000811",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000811.mp4",
+      "sha256": "7e46f496b33d30ef4cedecbaf9e43a5971f952709dad3dff7ed17dadaa120c18",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "REVIEW_012",
+      "source_id": "000428",
+      "source_path": "data_raw\\ccd\\videos\\Crash-1500\\000428.mp4",
+      "sha256": "93b9724be36bf45e3e39e5d99e2606a5242ca42d799e62e769c2f842544cd428",
+      "frames": 50,
+      "fps": 10.0
+    }
+  ]
+}

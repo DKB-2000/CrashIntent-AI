@@ -1,0 +1,41 @@
+{
+  "scope": "Right-turn enriched diagnostic candidates; not confirmed labels or representative evaluation. Human must label intervals; collision motion may be UNKNOWN. Training overlap not audited.",
+  "method": "Ranked 1500 CCD videos by median horizontal flow on frames 0,8,16,24,32 at 160x90, median over rows 15:60. Inspected sequential contact sheets of top 24 at frames 0,10,20,30,40. Selected 5 plausible ego-right-turn candidates.",
+  "videos": [
+    {
+      "ID": "CASE_01",
+      "source_id": "001289",
+      "sha256": "a2d79ed916ebab3de8ecc9cfe8e3e4f6134cd2cfe4289ed57c2042f5e2077d36",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "CASE_02",
+      "source_id": "001419",
+      "sha256": "c44fb8d5653d96d24a9f0fab9787961d07b4ed8dc227d9b03952c4a0c359e70b",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "CASE_03",
+      "source_id": "000445",
+      "sha256": "b5f90e7bf92f538fb575c1be8b06614ff801d333e679c4bb21c83839a06f19af",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "CASE_04",
+      "source_id": "000154",
+      "sha256": "f97e63f940169ca5473e8c2a850814f0903552f46aa4a4fe782fe01d9f6ecd99",
+      "frames": 50,
+      "fps": 10.0
+    },
+    {
+      "ID": "CASE_05",
+      "source_id": "000917",
+      "sha256": "d73aeb01943a7f4fa6fe36fea4662c4cc7bc89b081ec73222f31effb979b4a0e",
+      "frames": 50,
+      "fps": 10.0
+    }
+  ]
+}
