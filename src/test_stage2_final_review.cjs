@@ -1,0 +1,23 @@
+// Pure UI state/CSV tests in a minimal DOM; not a browser interaction certificate.
+const fs=require('fs'), vm=require('vm'), assert=require('assert');
+const html=fs.readFileSync(__dirname+'/stage2_final_review.html','utf8');
+const ids=['UNIT_A','UNIT_B'];
+const fields=['ID','review_status','exclusion_reason','collision_frame','entry_frame','evasion_space','entry_side','recording_source','reviewer','note'];
+const rows=ids.map(ID=>Object.fromEntries(fields.map(k=>[k,k==='ID'?ID:k==='review_status'?'PENDING':k==='recording_source'?'UNKNOWN':''])));
+const boot={manifest_sha256:'UNIT_ONLY',rows,videos:ids.map(ID=>({ID,times:[0,.1,.3,.31],video_file:'unit.mp4'}))};
+const nodes={};const element=()=>({value:'',textContent:'',append(){},click(){}});
+const sandbox={console,setTimeout,document:{getElementById(id){return nodes[id]??=(element());},createElement:element,addEventListener(){},activeElement:{tagName:'BODY'}},localStorage:{getItem(){return null;},setItem(){}}};
+vm.createContext(sandbox);
+const js=html.match(/<script>([\s\S]*)<\/script>/)[1].replace('__BOOTSTRAP__',JSON.stringify(boot));
+vm.runInContext(js,sandbox);
+vm.runInContext('frameIndex=99;renderFrame()',sandbox);assert.equal(nodes.seek.value,3);
+nodes.collisionMark.onclick();assert.equal(nodes.collision_frame.value,3);
+vm.runInContext('frameIndex=-1;renderFrame()',sandbox);assert.equal(nodes.seek.value,0);
+assert.throws(()=>vm.runInContext("validate([{...records[0],review_status:'ACCEPT'},records[1]])",sandbox));
+assert.throws(()=>vm.runInContext('validate([records[0],records[0]])',sandbox));
+const csv=vm.runInContext("[fields,...records.map(r=>fields.map(k=>k==='note'?'comma, quote\" and\\nnewline':r[k]))].map(r=>r.map(csvCell).join(',')).join('\\r\\n')",sandbox);
+sandbox.csvText=csv;
+const decoded=vm.runInContext('parseCSV(csvText)',sandbox);
+assert.equal(decoded.length,2);assert.equal(decoded[0].note,'comma, quote" and\nnewline');
+vm.runInContext('validate(parseCSV(csvText))',sandbox);
+console.log('PASS: native-frame clamp/mark, incomplete labels and duplicate IDs rejected, CSV quotes/newlines roundtrip');

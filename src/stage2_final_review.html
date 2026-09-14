@@ -1,0 +1,66 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>Stage2 최종 검수 준비</title>
+<style>body{font:16px system-ui;max-width:1100px;margin:24px auto;padding:16px;line-height:1.6}img{width:100%;max-height:65vh;object-fit:contain;background:#111}button,input,select{font:inherit;padding:5px;margin:4px}input[type=number]{width:110px}.fields{display:flex;flex-wrap:wrap;gap:12px}textarea{width:95%;height:55px}.notice{background:#f1f4f8;padding:12px}#seek{width:65%}</style>
+<h1>Stage2 후보 검수 · 라벨 기록</h1>
+<p class="notice">원본 프레임 번호와 시각을 함께 표시합니다. AI 관찰·모델 예측은 표시하지 않습니다.
+진입은 상대 차량 바퀴의 최초 차선 접촉, 충돌은 실제 접촉을 기준으로 확인하세요.
+직접 판단하기 어려운 영상은 제외 사유를 기록하세요. 모든 후보의 검수 상태가 결정되기 전에는 채점하지 않습니다.</p>
+<p>입력 파일을 그대로 보존한 로컬 검수 화면입니다. 편집 내용은 이 브라우저에 임시 저장됩니다.
+완료하거나 중단할 때 <b>CSV 내려받기</b>로 별도 보관하세요. 자동으로 프로젝트 CSV를 덮어쓰지 않습니다.</p>
+<label>영상 <select id="video"></select></label><span id="progress"></span>
+<p><a id="original" target="_blank">원본 영상 열기</a> · <span id="info"></span></p>
+<img id="frame" alt="선택한 원본 프레임"><p id="imageError" role="alert"></p>
+<div><button id="back10">−10</button><button id="back">이전 프레임</button><input id="seek" type="range" min="0" value="0"><button id="next">다음 프레임</button><button id="next10">+10</button></div>
+<p>←/→ 키로 프레임 이동 · 현재 프레임을 <button id="collisionMark">충돌로 기록</button><button id="entryMark">진입으로 기록</button></p>
+<div class="fields">
+<label>충돌 프레임 <input id="collision_frame" type="number" min="0"></label>
+<label>진입 프레임 <input id="entry_frame" type="number" min="0"></label>
+<label>회피 공간 <select id="evasion_space"><option value="">미기록</option><option value="0">없음</option><option value="1">있음</option></select></label>
+<label>진입 방향 <select id="entry_side"><option value="">미기록</option><option>LEFT</option><option>RIGHT</option></select></label>
+<label>검수자 <input id="reviewer"></label>
+<label>촬영 출처 <input id="recording_source" placeholder="모르면 UNKNOWN"></label>
+</div>
+<p>회피 공간은 충돌 순간의 인접 차로·도로 가장자리와 차량·연석·분리대·방호벽을 함께 살펴 판단합니다.
+촬영 출처를 모르더라도 영상 ID를 독립 출처인 것처럼 입력하지 마세요.</p>
+<label>제외 사유 <textarea id="exclusion_reason"></textarea></label>
+<label>메모 <textarea id="note"></textarea></label>
+<p><label>검수 상태 <select id="review_status"><option value="PENDING">미완료</option><option value="ACCEPT">검수 완료 · 채택</option><option value="EXCLUDE">검수 완료 · 제외</option></select></label>
+<button id="save">이 영상 기록 저장</button><span id="message" role="status"></span></p>
+<button id="download">CSV 내려받기</button><label>기존 CSV 이어서 열기 <input id="import" type="file" accept=".csv"></label>
+<script>
+const boot=__BOOTSTRAP__;
+const fields=['ID','review_status','exclusion_reason','collision_frame','entry_frame','evasion_space','entry_side','recording_source','reviewer','note'];
+const storageKey='stage2-final-review-'+boot.manifest_sha256;
+let records=boot.rows, index=0, frameIndex=0;
+const el=id=>document.getElementById(id);
+function validate(rows){
+ if(rows.length!==boot.rows.length||new Set(rows.map(r=>r.ID)).size!==rows.length)throw Error('영상 수 또는 중복 ID 오류');
+ for(const r of rows){
+  const v=boot.videos.find(v=>v.ID===r.ID); if(!v)throw Error('알 수 없는 영상 ID');
+  if(!['PENDING','ACCEPT','EXCLUDE'].includes(r.review_status))throw Error('검수 상태 오류');
+  if(r.review_status==='PENDING')continue;
+  if(!r.reviewer.trim())throw Error(r.ID+': 검수자를 입력하세요');
+  if(r.review_status==='EXCLUDE'){if(!r.exclusion_reason.trim())throw Error(r.ID+': 제외 사유가 필요합니다');continue;}
+  for(const key of ['collision_frame','entry_frame'])if(!/^\d+$/.test(r[key])||Number(r[key])>=v.times.length)throw Error(r.ID+': 프레임 번호를 확인하세요');
+  if(!['0','1'].includes(r.evasion_space)||!['LEFT','RIGHT'].includes(r.entry_side))throw Error(r.ID+': 회피 공간과 방향을 기록하세요');
+ }
+}
+try{const old=localStorage.getItem(storageKey);if(old){const r=JSON.parse(old);validate(r);records=boot.rows.map(b=>r.find(x=>x.ID===b.ID));}}catch(e){el('message').textContent='임시 저장을 불러오지 못했습니다: '+e.message;}
+boot.videos.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.ID;el('video').append(o);});
+function renderFrame(){const v=boot.videos[index];frameIndex=Math.max(0,Math.min(v.times.length-1,frameIndex));el('seek').value=frameIndex;el('info').textContent='프레임 '+frameIndex+' / '+(v.times.length-1)+' · '+v.times[frameIndex].toFixed(6)+'초';el('imageError').textContent='';el('frame').src='images/'+v.ID+'/frame_'+String(frameIndex).padStart(6,'0')+'.jpg';}
+function progress(){el('progress').textContent=' · 완료 '+records.filter(r=>r.review_status!=='PENDING').length+' / '+records.length;}
+function show(){const v=boot.videos[index],r=records[index];el('video').value=index;el('seek').max=v.times.length-1;el('original').href='../../'+v.video_file;for(const key of fields.slice(1))el(key).value=r[key]||'';renderFrame();progress();}
+function collect(){const row={ID:records[index].ID};for(const key of fields.slice(1))row[key]=el(key).value;return row;}
+function persist(){const next=records.map((r,i)=>i===index?collect():r);validate(next);records=next;try{localStorage.setItem(storageKey,JSON.stringify(records));el('message').textContent='브라우저 임시 저장 완료';}catch(e){el('message').textContent='임시 저장 실패. CSV를 내려받으세요.';}progress();}
+el('save').onclick=()=>{try{persist();}catch(e){el('message').textContent=e.message;}};
+el('video').onchange=()=>{try{persist();index=Number(el('video').value);frameIndex=0;show();}catch(e){el('video').value=index;el('message').textContent=e.message;}};
+for(const [id,delta] of [['back10',-10],['back',-1],['next',1],['next10',10]])el(id).onclick=()=>{frameIndex+=delta;renderFrame();};
+el('seek').oninput=()=>{frameIndex=Number(el('seek').value);renderFrame();};
+el('collisionMark').onclick=()=>{el('collision_frame').value=frameIndex;};el('entryMark').onclick=()=>{el('entry_frame').value=frameIndex;};
+el('frame').onerror=()=>{el('imageError').textContent='프레임 파일을 열 수 없습니다. 입력 변환 완료 여부와 파일 위치를 확인하세요.';};
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();frameIndex+=e.key==='ArrowLeft'?-1:1;renderFrame();}});
+function csvCell(v){return '"'+String(v??'').replaceAll('"','""')+'"';}
+el('download').onclick=()=>{try{persist();const csv='\ufeff'+[fields,...records.map(r=>fields.map(k=>r[k]||''))].map(r=>r.map(csvCell).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='stage2-review-decisions.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){el('message').textContent=e.message;}};
+function parseCSV(text){text=text.replace(/^\ufeff/,'');const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}else if(c===','&&!quoted){row.push(cell);cell='';}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell='';}else cell+=c;}if(quoted)throw Error('CSV 따옴표 오류');if(cell||row.length){row.push(cell);rows.push(row);}const header=rows.shift();if(JSON.stringify(header)!==JSON.stringify(fields))throw Error('CSV 컬럼이 다릅니다');return rows.map(r=>{if(r.length!==fields.length)throw Error('CSV 열 수 오류');return Object.fromEntries(fields.map((k,i)=>[k,r[i]]));});}
+el('import').onchange=async()=>{try{const rows=parseCSV(await el('import').files[0].text());validate(rows);records=boot.rows.map(b=>rows.find(r=>r.ID===b.ID));localStorage.setItem(storageKey,JSON.stringify(records));show();el('message').textContent='CSV 불러오기 완료';}catch(e){el('message').textContent=e.message;}};
+show();
+</script></html>
