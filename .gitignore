@@ -1,4 +1,5 @@
 .venv/
+.tools/
 .idea/
 .vscode/
 Baseline/submit.zip
@@ -8,6 +9,8 @@ __pycache__/
 *.py[cod]
 artifacts/
 data_raw/
+/data/stage2-validation-nexar-20260914/
+/data/stage3-blind-review-20260911/videos/
 project.local.properties
 .env
 .env.*

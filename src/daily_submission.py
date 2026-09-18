@@ -1,5 +1,7 @@
 """Publish a dated copy of the latest GPU-validated submission; never upload."""
 import argparse, ast, hashlib, json, shutil, tempfile, zipfile
+from contextlib import contextmanager
+import os, time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -28,7 +30,7 @@ def write_json(path,value):
     path.parent.mkdir(parents=True,exist_ok=True)
     tmp=path.with_suffix('.temporary.json');tmp.write_text(json.dumps(value,indent=2,ensure_ascii=False),encoding='utf-8');tmp.replace(path)
 
-def register(candidate,evidence,notes):
+def _register(candidate,evidence,notes):
     candidate=candidate.resolve();evidence=evidence.resolve()
     for path in (candidate,evidence):
         if not path.is_relative_to(ROOT):raise ValueError('Release inputs must be inside project')
@@ -45,7 +47,7 @@ def register(candidate,evidence,notes):
     write_json(REGISTRY,selected)
     return selected
 
-def publish():
+def _publish():
     selected=json.loads(REGISTRY.read_text(encoding='utf-8'))
     if selected['status']!='GPU_VALIDATED':raise ValueError('Candidate is not validated')
     candidate=(ROOT/selected['candidate']).resolve();evidence=(ROOT/selected['evidence']).resolve()
@@ -65,6 +67,68 @@ def publish():
     write_json(ROOT/'artifacts/daily-submissions/latest.json',report)
     (out/'README.txt').write_text('Prepared for manual website upload. Not submitted.\nSHA256: '+selected['sha256']+'\n'+selected['scope']+'\n'+selected['notes']+'\n',encoding='utf-8')
     return report
+
+@contextmanager
+def registry_lock():
+    """Serialize cooperating register/publish processes on Windows and Linux."""
+    REGISTRY.parent.mkdir(parents=True,exist_ok=True)
+    lock=REGISTRY.with_suffix('.lock').open('a+b')
+    try:
+        lock.seek(0,2)
+        if lock.tell()==0:
+            lock.write(b'0');lock.flush()
+        started=time.monotonic()
+        while True:
+            try:
+                lock.seek(0)
+                if os.name=='nt':
+                    import msvcrt
+                    msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
+                else:
+                    import fcntl
+                    fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
+                break
+            except OSError:
+                if time.monotonic()-started>180:
+                    raise TimeoutError('Submission registry is busy')
+                time.sleep(.2)
+        try:
+            yield
+        finally:
+            lock.seek(0)
+            if os.name=='nt':
+                msvcrt.locking(lock.fileno(),msvcrt.LK_UNLCK,1)
+            else:
+                fcntl.flock(lock.fileno(),fcntl.LOCK_UN)
+    finally:
+        lock.close()
+
+def check_registry(expected):
+    if expected is not None and (not REGISTRY.exists() or sha(REGISTRY)!=expected):
+        raise ValueError('Submission registry changed; refusing to overwrite another release')
+
+def register(candidate,evidence,notes,expected_registry_sha256=None):
+    with registry_lock():
+        check_registry(expected_registry_sha256)
+        return _register(candidate,evidence,notes)
+
+def publish(expected_registry_sha256=None):
+    with registry_lock():
+        check_registry(expected_registry_sha256)
+        return _publish()
+
+def register_and_publish(candidate,evidence,notes,expected_registry_sha256):
+    """The automation commits registration and dated ZIP under one lock."""
+    with registry_lock():
+        current=json.loads(REGISTRY.read_text(encoding='utf-8')) if REGISTRY.exists() else {}
+        desired=sha(candidate)
+        # Resume a crash after registration but before dated-copy completion.
+        if (current.get('sha256')==desired and current.get('evidence_sha256')==sha(evidence)
+                and current.get('candidate')==str(candidate.resolve().relative_to(ROOT))):
+            return _publish()
+        check_registry(expected_registry_sha256)
+        _register(candidate,evidence,notes)
+        return _publish()
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)

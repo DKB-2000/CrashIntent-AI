@@ -1,0 +1,164 @@
+"""Run frozen transition augmentation experiment with bounded local supervision."""
+import os
+import json
+from pathlib import Path
+import subprocess
+import sys
+import numpy as np
+import pandas as pd
+import torch
+from torch import nn
+from torch.nn import functional as F
+import cv2
+import compare_stage3_representations as base
+from compare_stage3_causal_smoothing import metric
+
+P=Path(__file__).resolve().parents[1]
+ROOT=P/'artifacts/stage3-right-recovery-20260914'
+PREV=P/'artifacts/stage3-transition-matched-control-20260914'
+REF=P/'artifacts/stage3-representation-20260910'
+
+def save(name,obj):base.save(ROOT/name,obj)
+
+def predict(model,x):
+    model.eval();aa=[];ss=[]
+    with torch.inference_mode():
+        for chunk in x.split(256):
+            a,s=model(chunk);aa.append(a);ss.append(s)
+    a=torch.cat(aa).numpy();s=torch.cat(ss).numpy()
+    assert np.isfinite(a).all() and np.isfinite(s).all()
+    return a,s
+
+def run():
+    torch.set_num_threads(2);cv2.setNumThreads(1)
+    plan=json.loads((ROOT/'plan.json').read_text())
+    for name,h in plan['inputs_sha256'].items():assert base.sha(P/name)==h
+    for name,h in plan['outputs_sha256'].items():assert base.sha(ROOT/name)==h
+    provenance={str(p.relative_to(P)):base.sha(p) for p in [Path(__file__),Path(base.__file__),ROOT/'plan.json',REF/'validation-samples.csv']}
+    save('execution.json',dict(status='STARTED',inputs_sha256=provenance,pid=os.getpid(),threads=2))
+    old=pd.read_csv(ROOT/'repeat-samples.csv');new=pd.read_csv(ROOT/'transition-samples.csv');valid=pd.read_csv(REF/'validation-samples.csv')
+    schedule=pd.read_csv(ROOT/'schedule.csv').sort_values(['epoch','batch','position'])
+    pd.testing.assert_frame_equal(new.iloc[:1000].reset_index(drop=True),old)
+    assert len(new)==1090+plan['added_right'] and set(new.route).isdisjoint(valid.route)
+    base.ROOT=REF
+    for sid in set(old.ID)|set(valid.ID):
+        path=REF/'cache'/(sid+'.npz');m=json.loads(path.with_suffix('.json').read_text())
+        assert base.sha(path)==m['features_sha256']
+    xold=base.array_for(old);xvalid=base.array_for(valid)
+    xnew=np.empty((len(new),xold.shape[1]),np.float32);xnew[:1000]=xold
+    cache=ROOT/'new-features';cache.mkdir(exist_ok=False);groups=list(new.iloc[1000:].groupby('ID'));features_provenance=[]
+    for i,(sid,g) in enumerate(groups,1):
+        path=(base.DATA/g.video.iloc[0]).resolve();m=json.loads((REF/'cache'/(sid+'.json')).read_text())
+        assert base.sha(path)==m['video_sha256']
+        with np.load(REF/'cache'/(sid+'.npz')) as z:anchor=int(z['endpoints'][0]);expected=z['features'][0].copy()
+        endpoints=sorted(set(g.endpoint.astype(int))|{anchor});features,n=base.extract_video(path,endpoints)
+        np.testing.assert_array_equal(features[endpoints.index(anchor)],expected)
+        for idx,r in g.iterrows():xnew[idx]=features[endpoints.index(int(r.endpoint))]
+        target=cache/(sid+'.npz');np.savez_compressed(target,features=features,endpoints=endpoints)
+        features_provenance.append(dict(ID=sid,video_sha256=m['video_sha256'],features_sha256=base.sha(target),anchor_exact=True))
+        save('status.json',dict(status='EXTRACTING',completed=i,total=len(groups),pid=os.getpid()))
+        print('features',i,len(groups),sid,flush=True)
+    assert np.isfinite(xnew).all()
+    np.savez_compressed(ROOT/'training-features.npz',baseline=xold,transition=xnew)
+    save('feature-provenance.json',dict(videos=features_provenance,training_features_sha256=base.sha(ROOT/'training-features.npz')))
+    ck=torch.load(REF/'20260910-motion/model.pt',weights_only=True,map_location='cpu')
+    mean,std,mask=(ck[k] for k in ['mean','std','mask'])
+    np.testing.assert_array_equal(mean.numpy(),xold.mean(0));np.testing.assert_array_equal(std.numpy(),xold.std(0).clip(.01))
+    assert torch.all(mask[:1280]==0) and torch.all(mask[1280:]==1)
+    def norm(x):return torch.from_numpy(np.clip((x-mean.numpy())/std.numpy(),-10,10))*mask
+    xv=norm(xvalid);xs={'repeat_original':norm(xold),'add_transition':norm(xnew)}
+    frames={'repeat_original':old,'add_transition':new};completed=0
+    for seed in plan['seeds']:
+        for arm in plan['arms']:
+            out=ROOT/arm/str(seed);out.mkdir(parents=True,exist_ok=False)
+            torch.manual_seed(seed);model=base.Control();opt=torch.optim.AdamW(model.parameters(),lr=.001,weight_decay=0.)
+            frame=frames[arm];ta=torch.tensor(frame.accel.to_numpy());ts=torch.tensor(frame.steer.to_numpy());history=[]
+            col='repeat_index' if arm=='repeat_original' else 'transition_index'
+            for epoch,g in schedule.groupby('epoch',sort=True):
+                losses=[];model.train()
+                for _,batch in g.groupby('batch',sort=True):
+                    ids=batch[col].to_numpy();a,s=model(xs[arm][ids]);moving=ta[ids]!=3
+                    loss=F.cross_entropy(a,ta[ids])+F.cross_entropy(s[moving],ts[ids][moving])
+                    opt.zero_grad(set_to_none=True);loss.backward();nn.utils.clip_grad_norm_(model.parameters(),1.,error_if_nonfinite=True);opt.step();losses.append(float(loss.detach()))
+                assert len(losses)==130
+                history.append(dict(epoch=int(epoch),loss=float(np.mean(losses)),updates=len(losses)))
+                save('status.json',dict(status='TRAINING',completed=completed,total=6,seed=seed,arm=arm,epoch=int(epoch),pid=os.getpid()))
+            assert sum(r['updates'] for r in history)==plan['updates_per_arm']
+            a,s=predict(model,xv);np.savez_compressed(out/'validation-logits.npz',accel=a,steer=s)
+            pred=valid[['ID','endpoint']].copy();pred['accel']=a.argmax(1);pred['steer']=s.argmax(1);pred.to_csv(out/'predictions.csv',index=False)
+            torch.save(dict(model=model.state_dict(),mean=mean,std=std,mask=mask,seed=seed,arm=arm),out/'model.pt')
+            base.save(out/'report.json',dict(status='COMPLETE',history=history,checkpoint_sha256=base.sha(out/'model.pt'),metrics=base.score(valid,a.argmax(1),s.argmax(1))))
+            completed+=1;print('trained',completed,seed,arm,metric(valid,s.argmax(1))['f1'],flush=True)
+    save('status.json',dict(status='VERIFYING',completed=6,total=6,pid=os.getpid()))
+    rows=[];events=[];outputs={}
+    for seed in plan['seeds']:
+        for arm in ['original','straight_only']+plan['arms']:
+            folder=REF/f'{seed}-motion' if arm=='original' else PREV/'add_transition'/str(seed) if arm=='straight_only' else ROOT/arm/str(seed)
+            report=json.loads((folder/'report.json').read_text());assert base.sha(folder/'model.pt')==report['checkpoint_sha256']
+            ck=torch.load(folder/'model.pt',weights_only=True,map_location='cpu')
+            for name,expected in [('mean',mean),('std',std),('mask',mask)]:assert torch.equal(ck[name],expected)
+            model=base.Control();model.load_state_dict(ck['model'],strict=True);aa,ss=predict(model,xv)
+            with np.load(folder/'validation-logits.npz') as z:
+                np.testing.assert_array_equal(aa,z['accel']);np.testing.assert_array_equal(ss,z['steer'])
+            pred=ss.argmax(1)
+            if arm=='repeat_original':
+                with np.load(PREV/arm/str(seed)/'validation-logits.npz') as prior_logits:
+                    np.testing.assert_array_equal(aa,prior_logits['accel']);np.testing.assert_array_equal(ss,prior_logits['steer'])
+            if arm!='original':
+                recorded=pd.read_csv(folder/'predictions.csv')
+                assert np.array_equal(recorded.ID,valid.ID) and np.array_equal(recorded.endpoint,valid.endpoint)
+                np.testing.assert_array_equal(recorded.steer,pred);np.testing.assert_array_equal(recorded.accel,aa.argmax(1))
+            for route in ['ALL']+sorted(valid.route.unique()):
+                g=valid if route=='ALL' else valid[valid.route==route]
+                rows.append(dict(seed=seed,arm=arm,route=route,**metric(g,pred[g.index])))
+            for sid,g in valid.groupby('ID'):
+                assert np.all(np.diff(g.endpoint)==1)
+                truth=g.steer.to_numpy();moving=g.accel.to_numpy()!=3;p=pred[g.index]
+                for t in range(10,len(g)-12):
+                    before,after=truth[t-1],truth[t]
+                    if before==after or (before!=1 and after!=1):continue
+                    if not (moving[t-10:t+10].all() and np.all(truth[t-10:t]==before) and np.all(truth[t:t+10]==after)):continue
+                    hits=[k for k in range(11) if np.all(truth[t:t+k+3]==after) and np.all(p[t+k:t+k+3]==after)]
+                    events.append(dict(seed=seed,arm=arm,ID=sid,endpoint=int(g.endpoint.iloc[t]),kind='turn_start' if before==1 else 'turn_end',detected=bool(hits),delay_s=hits[0]/10 if hits else None))
+            for name in ['model.pt','validation-logits.npz']:outputs[str((folder/name).relative_to(P))]=base.sha(folder/name)
+    e=pd.DataFrame(events);e.to_csv(ROOT/'transitions.csv',index=False);transition=[]
+    for (seed,arm,kind),g in e.groupby(['seed','arm','kind']):
+        hit=g[g.detected];transition.append(dict(seed=int(seed),arm=arm,kind=kind,events=len(g),missed=int((~g.detected).sum()),mean_delay_s=float(hit.delay_s.mean()) if len(hit) else None))
+    pooled=[r for r in rows if r['route']=='ALL'];gates={}
+    for control in ['original','repeat_original']:
+        delta=[next(r['f1'] for r in pooled if r['seed']==s and r['arm']=='add_transition')-next(r['f1'] for r in pooled if r['seed']==s and r['arm']==control) for s in plan['seeds']]
+        rd=[float(np.mean([r['f1'] for r in rows if r['route']==route and r['arm']=='add_transition'])-np.mean([r['f1'] for r in rows if r['route']==route and r['arm']==control])) for route in sorted(valid.route.unique())]
+        recall=np.mean([r['recall'] for r in pooled if r['arm']=='add_transition'],0)-np.mean([r['recall'] for r in pooled if r['arm']==control],0)
+        latency=True
+        for r in [r for r in transition if r['arm']=='add_transition']:
+            b=next(b for b in transition if b['seed']==r['seed'] and b['kind']==r['kind'] and b['arm']==control)
+            latency &= r['missed']<=b['missed'] and r['mean_delay_s'] is not None and b['mean_delay_s'] is not None and r['mean_delay_s']<=b['mean_delay_s']+.1
+        gates[control]=dict(seed_f1_deltas=delta,route_f1_deltas=rd,recall_delta=recall.tolist(),latency_pass=bool(latency),passed=bool(all(v>0 for v in delta) and sum(v>0 for v in rd)>=3 and min(recall)>=-.02 and latency))
+    for path,h in provenance.items():assert base.sha(P/path)==h
+    for name,h in plan['outputs_sha256'].items():assert base.sha(ROOT/name)==h
+    result=dict(status='COMPLETE_VALIDATED',decision='FOLLOWUP_ONLY' if all(g['passed'] for g in gates.values()) else 'KEEP_BASELINE',
+        averages={a:float(np.mean([r['f1'] for r in pooled if r['arm']==a])) for a in ['original','straight_only']+plan['arms']},gates=gates,metrics=rows,transitions=transition,
+        validation='Input/manifest hashes; new feature anchors exact; frozen normalization exact; all12 checkpoint/hash/logit replays exact; new6 CSV mapping exact; independent confusion metrics; transitions and frozen gate evaluated.',
+        output_sha256=outputs,transitions_sha256=base.sha(ROOT/'transitions.csv'),adopted=False)
+    save('final-review.json',result);save('status.json',dict(status='COMPLETE_VALIDATED',completed=6,total=6,decision=result['decision']))
+    print(json.dumps(dict(averages=result['averages'],gates=gates),indent=2),flush=True)
+
+def watch():
+    import msvcrt
+    with (ROOT/'train-watch.lock').open('a+b') as lock:
+        lock.write(b'0');lock.flush();lock.seek(0);msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
+        assert not (ROOT/'execution.json').exists(),'Existing execution must be reviewed; no automatic retry'
+        try:
+            with (ROOT/'train.log').open('w',encoding='utf-8') as log:
+                child=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'run'],cwd=P,stdout=log,stderr=subprocess.STDOUT)
+                save('train-watch-status.json',dict(status='RUNNING',pid=os.getpid(),child_pid=child.pid))
+                try:rc=child.wait(timeout=3600)
+                except subprocess.TimeoutExpired:
+                    subprocess.run(['taskkill','/PID',str(child.pid),'/T','/F'],capture_output=True,check=True,timeout=30);raise
+                if rc:raise RuntimeError(f'Worker exit {rc}; see train.log')
+            assert json.loads((ROOT/'final-review.json').read_text())['status']=='COMPLETE_VALIDATED'
+            save('train-watch-status.json',dict(status='COMPLETE'))
+        except Exception as e:
+            save('status.json',dict(status='FAILED',error=str(e)));save('train-watch-status.json',dict(status='FAILED',error=str(e)));raise
+
+if __name__=='__main__':{'run':run,'watch':watch}[sys.argv[1]]()

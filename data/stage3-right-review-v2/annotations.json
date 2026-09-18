@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "scope": "Unreviewed source-disjoint right-turn candidates; no ground truth",
+  "videos": {
+    "RIGHT2_01": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_01.mp4",
+      "sha256": "98de6e4e5b482adb55f55d061a580cf2cb5df7c317b4ab37e270f9e6e9bae88b",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_02": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_02.mp4",
+      "sha256": "691a3e3eebd00c2ee198deadcf15ec7139e09d14b79d137bd729e539733e411f",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_03": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_03.mp4",
+      "sha256": "d4e723481f1b8ee030123922632b0f0a2e8dca91b550258edf11f7b63ca1c0f5",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_04": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_04.mp4",
+      "sha256": "3d7ce18b14522dfb62d50c1093538f517c9324c63124348081a31f0d90e66df1",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_05": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_05.mp4",
+      "sha256": "b456df49e77c9cf0ac06a2bab1f0b7f3bbeec8a34a5d78e41d95e3681f1b4d5e",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_06": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_06.mp4",
+      "sha256": "873a6bb4a6c9b6767ea2cf87ac534ebea4381fe951d082a0812dc8384b981502",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_07": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_07.mp4",
+      "sha256": "e2b4fe072f0577a008ccac125db9f189f3973729289b182b7623b1257f3353ce",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    },
+    "RIGHT2_08": {
+      "path": "D:\\DayCon\\CrashIntent AI\\crashvideo-project\\artifacts\\stage3-right-candidates-20260914\\videos\\RIGHT2_08.mp4",
+      "sha256": "e9f7af43e0a797ed249f58d124f8cee45c8eb22beee69f8a85690b3ef41df7ed",
+      "frames": 50,
+      "fps": 10.0,
+      "assumed_10hz": false,
+      "segments": []
+    }
+  }
+}

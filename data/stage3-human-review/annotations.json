@@ -161,8 +161,14 @@
       "segments": [
         {
           "start": 0,
-          "end": 49,
+          "end": 31,
           "steer": "STRAIGHT",
+          "motion": "MOVING"
+        },
+        {
+          "start": 32,
+          "end": 49,
+          "steer": "UNKNOWN",
           "motion": "MOVING"
         }
       ]

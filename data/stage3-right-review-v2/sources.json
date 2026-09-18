@@ -1,0 +1,79 @@
+{
+  "scope": "Source-disjoint from recorded exclusions; candidate selection biased, not independent generalization or confirmed right turns",
+  "method": "Early horizontal optical flow ranking; one per source; assistant visual screening. User interval review pending.",
+  "plan": "artifacts\\stage3-right-candidates-20260914\\plan.json",
+  "videos": [
+    {
+      "ID": "RIGHT2_01",
+      "source_id": "001163",
+      "youtube_id": "0139",
+      "sha256": "98de6e4e5b482adb55f55d061a580cf2cb5df7c317b4ab37e270f9e6e9bae88b",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 눈길 교차로 우측 방향 변화 후보. 접근 차량·후반 충격은 구간 검수 필요."
+    },
+    {
+      "ID": "RIGHT2_02",
+      "source_id": "000064",
+      "youtube_id": "0027",
+      "sha256": "691a3e3eebd00c2ee198deadcf15ec7139e09d14b79d137bd729e539733e411f",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 눈길 도로의 우측 굴곡을 따라 진행하는 후보. 맞은편 차량 접근 이후 제외 여부 검수."
+    },
+    {
+      "ID": "RIGHT2_03",
+      "source_id": "000699",
+      "youtube_id": "0087",
+      "sha256": "d4e723481f1b8ee030123922632b0f0a2e8dca91b550258edf11f7b63ca1c0f5",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 버스 뒤 교차로의 우측 진행 변화 후보. 옆 차량 진입과 자차 움직임 구분 필요."
+    },
+    {
+      "ID": "RIGHT2_04",
+      "source_id": "000553",
+      "youtube_id": "0066",
+      "sha256": "3d7ce18b14522dfb62d50c1093538f517c9324c63124348081a31f0d90e66df1",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 야간 교차로의 우측 방향 변화 후보. 저조도와 교차 차량 때문에 불확실 구간 확인 필요."
+    },
+    {
+      "ID": "RIGHT2_05",
+      "source_id": "000087",
+      "youtube_id": "0028",
+      "sha256": "b456df49e77c9cf0ac06a2bab1f0b7f3bbeec8a34a5d78e41d95e3681f1b4d5e",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 건물 모서리를 따라 우측 도로로 방향이 바뀌는 후보. 진입·회전 종료 구간 검수."
+    },
+    {
+      "ID": "RIGHT2_06",
+      "source_id": "001390",
+      "youtube_id": "0161",
+      "sha256": "873a6bb4a6c9b6767ea2cf87ac534ebea4381fe951d082a0812dc8384b981502",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 초반 완만한 우측 도로 곡선 후보. 후반 직진 전환 여부를 검수해야 함."
+    },
+    {
+      "ID": "RIGHT2_07",
+      "source_id": "000717",
+      "youtube_id": "0089",
+      "sha256": "e2b4fe072f0577a008ccac125db9f189f3973729289b182b7623b1257f3353ce",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 진입로 끝에서 우측 도로로 방향을 바꾸는 후보. 정지·출발 구간도 함께 확인."
+    },
+    {
+      "ID": "RIGHT2_08",
+      "source_id": "000467",
+      "youtube_id": "0062",
+      "sha256": "e9f7af43e0a797ed249f58d124f8cee45c8eb22beee69f8a85690b3ef41df7ed",
+      "frames": 50,
+      "fps": 10,
+      "reason": "자동차 전방, 교차로를 지나 우측으로 진행 방향이 바뀌는 후보. 곡선 시작·종료 검수."
+    }
+  ]
+}

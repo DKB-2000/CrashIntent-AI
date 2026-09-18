@@ -1,5 +1,17 @@
 # 외부 데이터 출처 기록 (Dacon 236753)
 
+## Stage2 검증 후보 추가 확보 착수 (2026-09-14)
+
+CCD 실제 1,500영상의 전체 133출처가 기존 수동학습·충돌 사전학습에서 사용돼
+별도출처 잔여가 0임을 재검산했다. 사용자 자료 확보 요청으로 공식 Nexar
+train/positive에서 고정 50영상(838,265,916bytes) 수집을 시작했다.
+공식 저장소 revision aa97deda5a59f00bb7187739053b7c72e14374df,
+Nexar Open Data License와 README·metadata 원문을 로컬 보존했다.
+출처표시·고지 유지, 데이터 영리 재판매 금지 및 윤리적 사용 제한을 유지한다.
+양성은 충돌/근접사고 혼합이므로 time_of_event를 Stage2 충돌 정답으로 확정하지 않는다.
+검증 후보 전용이며 학습·라벨링 미실행. 수집 완료 및 중복/출처 독립성은
+[실행 기록](docs/stage2-validation-acquisition.md)의 상태와 한계를 따른다.
+
 이 문서는 학습에 사용(검토)한 외부 공개 데이터셋의 출처·라이선스·이용조건·확보 방법을 기록한다.
 2차 평가 제출물(학습데이터 구성 보고서)에 그대로 재사용할 목적으로 작성한다 — `dacon-236753-대회안내.md` 8장 참고
 ("2차 평가 제출물에는 사용한 사전학습 모델/API/외부 데이터의 출처를 명시해야 함").
@@ -16,7 +28,10 @@
 - 공식 베이스라인과 같은 torchvision ResNet18 `IMAGENET1K_V1`을 수동 라벨 첫 테스트에 사용했다.
 - 문서: https://docs.pytorch.org/vision/0.23/models/generated/torchvision.models.resnet18.html
 - 파일: https://download.pytorch.org/models/resnet18-f37072fd.pth
-- SHA256: `f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec`.
+- 제출 ZIP 내부에 보관된 `resnet18-f37072fd.pth`의 로컬 SHA256:
+  `b55eb2f9f3f559e2101e507d9acc49a5e0768f9d710eeb6a0912080e57595860`
+  (Baseline·Stage2 사전학습 후보·Stage1 최고 ZIP 3곳 동일, 2026-09-16 재확인).
+  이전에 적힌 `f37072fd47...`은 이 로컬 파일의 SHA256과 일치하지 않아 정정했다.
 - 특징 추출기는 고정하고 Stage2 temporal/scene head만 학습했다.
 - 코드 라이선스와 사전학습 데이터의 이용조건은 구분해야 한다. 이번 기록은 공식 배포처와 사용 이력이며
   ImageNet 데이터 자체의 권리까지 새로 검증했다는 뜻은 아니다.
@@ -50,6 +65,41 @@
 | 다음 액션 | (1) `entry_frame`/`evasion_space`/`entry_side` 직접 라벨링 워크플로 설계(이번 작업 범위 밖), (2) 이 원본을 대회 Stage2 폴더 규격(`data/stage2/images/<ID>/frame_NNNNNN.jpg` + `labels.csv`)으로 변환하는 작업은 `crashvideo-model-expert`/후속 작업에서 별도 진행, (3) 필요 시 `Normal.zip`(BDD100K 파생 3,000건) 재다운로드 시도 — Stage1(재녹화 판별)이나 다른 용도로 필요해지면 그때 쿼터 회복 여부 확인 후 진행 |
 
 ---
+
+## Stage2 Nexar 50영상 공식 시간 채점·200영상 pool (2026-09-17)
+
+기존 검증전용 Nexar 양성50건의 frame PTS와 공식 event/alert로 고정 모델을 채점했다. incumbent
+collision-event MAE 7.406초, 중앙5.657초, ±.3초6%; entry-alert proxy MAE8.851초,
+중앙8.588초, ±.3초2%. CCD pretrained는 각각12.377초/10.938초로 더 나빴다. 이 결과는
+Nexar near-miss 포함과 alert/entry 의미 차이를 포함하지만 시간 head 외부 일반화가 큰 병목임을
+보인다. `artifacts/stage2-nexar-temporal-score-20260917/` 참고.
+
+50건은 검증 전용으로 고정하고 나머지700건에서 scene/weather/light/gap 균형 200건 학습 pool을
+확보했다. 3,205,071,535bytes exact, 200/200 OpenCV decode 및 frames/fps/event 범위 검증 PASS,
+bad0. 영상은 `data_raw/nexar-stage2-temporal-train-20260917`, manifest·크기·decode 결과는
+`artifacts/stage2-nexar-temporal-pool-20260917/`에 있다. 50 검증 영상과 중복 없음.
+
+## Stage2 시간 라벨 신규 감사 — MM-AU·Nexar (2026-09-17)
+
+공식 MM-AU 저장소를 `data_raw/mm-au-official-metadata-20260917`에 얕게 복제해 commit
+`2b205a48d81f78b0c09d387d04a333aca9fc5949`의 메타데이터를 전수 검사했다. 11,730행 중
+사고 양성 11,713행 전부 `0 <= t_ai <= t_co <= t_ae <= total_frames`를 만족하며 해시 ID도
+11,713개 고유하다. MM-AU 메타에는 FPS가 없고 `t_ai`가 대회 `entry_frame`과 의미가 같다는
+보장은 없다. `t_co`는 공식 collision start frame이다. 공식 `entry_side`·`evasion_space`는 없다.
+
+기존 Nexar 공식 metadata.csv는 표본 50건용이 아니라 양성 750건 전체 메타이며, 750/750 모두
+`time_of_alert <= time_of_event`, 고유 ID, 결측 없음이다. 문서상 30fps이므로 프레임 근사 변환은
+가능하지만 alert와 대회 entry의 의미 동등성은 영상 표본 보정 전 확정하지 않는다.
+
+검증 결과와 공통 스키마 CSV는 `artifacts/stage2-labeled-dataset-audit-v2-20260917/`에 있다.
+MM-AU Hugging Face 전체는 API 목록 기준 525,823,428,143 bytes라 받지 않았다. 공식 객체 라벨
+`MMAU_Det_paper/labels.tar.gz` 113,457,793 bytes만 다운로드했으며 SHA256
+`f84f291dda0ccb56fe632b71932aa4bc78389888fa7dc6ebb6c1dde81f84b621`, tar 안전성 검증 PASS다.
+42만2,488개 YOLO txt, 11,400개 영상키 중 메타와 11,383개 매칭. 11,381/11,380개가 각각
+`t_ai`/`t_co` ±5프레임 내 박스를 가진다. 일반 7클래스 객체 박스뿐이고 track ID·충돌 객체
+표시는 없어 entry_side/evasion_space 정답으로 직접 쓸 수 없다. 6,882개 범위 경고는 표본상
+차량 폭이 반올림으로 1.0008~1.0063인 경계 박스이므로 clip 가능한 형식 문제다. 상세는
+`artifacts/stage2-mmau-detection-label-audit-20260917/report.json`.
 
 ## 2. DoTA (Detection of Traffic Anomaly) — entry_frame 공백을 메울 후보로 조사. **조사 완료·트랙 종결(2026-09-02)**
 
@@ -302,6 +352,18 @@ DoTA를 통한 entry_side/evasion_space 조건부 트랙에서 남는 선택지(
 - bus 신호에 acceleration, angular velocity, brake pressure 등이 포함된다.
 - 공식 논문은 CC BY-ND 4.0을 언급하지만 세부 조향 신호 스키마와 다운로드 약관은 실제 사용 전에 다시 확인한다.
 
+#### A2D2 센서 파일럿 (2026-09-17)
+
+- 공식 공개 S3의 추출형 배포에 가입 없이 접근됨을 확인했다.
+- 첫 sensor-fusion 주행 `20180810_150607`의 버스 JSON은 105,582,443 bytes이고, 전방 카메라
+  메타데이터에는 `cam_tstamp`, `cam_name=front_center`, 대응 PNG 파일명이 포함된다.
+- 공식 README는 vehicle bus에 velocity와 steering wheel angle 등이 포함된다고 명시하며,
+  내려받은 LICENSE는 CC BY-ND 4.0을 가리킨다.
+- `src/scout_stage3_a2d2.py`로 버스 파일을 유한 재개 다운로드하고 신호명·표본 수·timestamp 범위·분포를
+  검증 중이다. 결과는 `artifacts/stage3-a2d2-scout-20260917/`에 기록한다.
+- 버스 검증 완료 전 대용량 PNG는 받지 않는다. 조향·yaw·속도 범위로 회전 구간을 먼저 선별한 뒤 필요한
+  front-center 프레임만 가져오는 것이 다음 단계다.
+
 ### Stage 3 다음 액션
 
 1. 완료: 공식 1분 예제의 영상·CAN·IMU 구조, timestamp 범위, 10Hz 변환과 오버레이를 검증했다.
@@ -366,3 +428,44 @@ Chunk_1의 학습 17 route에서 IMU·pose를 비교해 영점 −0.2455도와 �
 사용자 승인을 받은 뒤 약190MB를 비공개 업로드하고 GPU 사전 학습 version 1을 실행했다.
 전체 본 학습 완료 결과는 아직 없다. 새 외부 데이터는 추가하지 않았으며
 기존 CCD 출처·이용조건을 그대로 적용한다. 상세 `docs/stage1-full-training.md` 참고.
+# Stage3 Civic 추가 원본 수집 착수 (2026-09-14)
+
+## DLC-2021 Stage1 실제 화면 재촬영 자료 (2026-09-16)
+
+- 공식 논문/데이터: https://doi.org/10.3390/jimaging8070181, Zenodo part1 `10.5281/zenodo.6792397`, part2 최신 `10.5281/zenodo.7467004`, 원저자 FTP `ftp://smartengines.com/dlc-2021/`.
+- 라이선스: CC BY-SA 2.5. 얼굴 이미지는 Generated Photos 출처표시 권고. 비영리 대회 연구에 사용하며 2차 보고서에 논문·Zenodo·Generated Photos를 명시한다.
+- 구성: 합성 신분증을 스마트폰으로 촬영한 원본 `or`와 화면 표시를 실제 iPhone/Android로 재촬영한 `re`. 메타데이터 전체1,424클립 중 or290/re400. re는 화면4종·촬영기기2종·문서10종이다.
+- 공식 baseline의 자동 라벨 목록: train positive19,543/negative25,980, test positive15,346/negative16,264 프레임. 사람 라벨링 없이 제공 유형코드와 목록을 사용한다.
+- 크기: Zenodo part2 38.5GB, part1 33.9GB. 원저자 FTP의 전체 프레임 tar 17,768,312,320bytes를 선택했다. 전체 원본 영상 tar 88,328,994,816bytes는 받지 않는다.
+- 로컬: 메타데이터·라이선스·README·baseline은 `artifacts/stage1-physical-recapture-inventory-20260916/`. 프레임 tar는 `data_raw/dlc-2021/clips.tar`로 유한 watcher 다운로드 중이며 아직 완료 아님. 공식 MD5와 tar 목록 검증 후에만 사용한다. 상세 `docs/stage1-physical-recapture-data.md`.
+
+완료 갱신:5경로10구간110파일377,073,634bytes 확보, 전12,000프레임 디코딩·
+CRC/크기/저장SHA 검증PASS. 상태 ACQUIRED_VALIDATED_UNCALIBRATED.
+아래 착수상태보다 완료를 우선. 센서 의미보정·조향라벨·모델채점은 미완료.
+
+공식 comma.ai HF `commaai/comma2k19` Chunk_3, revision
+`4bff77c7254c654c28d4c2726186b4e825adccee`에서5경로10구간 약377MB 부분수신.
+기존 RAV4 장치와 다른 Civic `99c94dc769b5d96e`, 같은고속도로 자료.
+사용자 다운로드 승인, 상세 docs/stage3-civic-pilot-acquisition.md.
+상태 artifacts/stage3-civic-acquisition-20260914/status.json 기준, 아직확보완료로 간주하지 않는다.
+기존 공식배포 MIT 표기 재확인. 원본·출처 보존, 평가 후보용이며 학습/라벨 미사용.
+## DoTA 공식 주석 재감사 (2026-09-18)
+
+- 공식 저장소: https://github.com/MoonBlvd/Detection-of-Traffic-Anomaly
+- 로컬 주석 ZIP: `data_raw/dota/DoTA_annotations.zip`, 10,357,806 bytes, SHA256
+  `56209f87398cbf47b9eeee4b516461e71cd3f97f9dd8c4432773315db307ff15`.
+- JSON 4,677건 전수 검증 완료. 객체 track ID와 bbox 170,739개, 공간 주석 영상
+  4,376개, ego-involved 2,724개를 확인했다.
+- 공식 전체55GB 및 분할 Google Drive 링크는 2026-09-18 현재 폴더 목록 조회부터 실패했다.
+  출처가 확인되지 않는 재배포본은 사용하지 않는다.
+- 감사 결과: `artifacts/stage2-dota-annotation-audit-20260918/report.json`.
+## DAD 객체 주석 및 접근 계약 (2026-09-18)
+
+- 공식 코드/주석: https://github.com/smallcorgi/Anticipating-Accidents
+- 공식 데이터 요청: https://docs.google.com/forms/d/1A4DdNTuPZC9zfV8lBWgja659rNkL2ntR_NKmT-8t-Ng/viewform
+- `data_raw/dad/annotation.zip`: 2,789,878 bytes, SHA256
+  `54854c8769d31aec628bfa03fb73059c837d681eaa6d1d8d03150945e8a3b33b`.
+- 사고 영상 주석620건, bbox326,910개, 사고 관련 bbox103,310개를 전수 검증했다.
+- 영상 접근은 연구자 서명 동의가 필요하다. 연구 목적 전용, 제3자 제공 금지이며 사용자 신원과
+  법적 서명 없이 요청서를 대신 제출하지 않는다.
+- 감사 결과: `artifacts/stage2-dad-annotation-audit-20260918/report.json`.

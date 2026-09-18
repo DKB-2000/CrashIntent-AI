@@ -1,7 +1,11 @@
 # crashvideo-project — 블랙박스 영상 기반 지능형 고의사고 분석 (Dacon 236753)
 
-Stage3 최신 현황(2026-09-11): [남은 개선 사항과 사용자 직접 검수 절차](docs/stage3-remaining-work.md).
-기존 움직임 MLP를 유지하며, 다음 우선 작업은 준비된 24영상의 블라인드 검수입니다.
+Stage3 최신 현황(2026-09-14): [사람 라벨 대조 채점 완료](docs/stage3-human-comparison.md).
+REVIEW_011 전도 구간의 사용자 확정 UNKNOWN 수정을 반영해 유효332프레임을
+무작위/우회전 선별로 분리 재채점하고 검증을 통과했습니다.
+기존 움직임 MLP를 유지합니다. [실패 구간 분석](docs/stage3-failure-review.md)까지 완료했고,
+전도 구간 수정은 완료했고 CASE_01 재평가는 보류했습니다.
+[자동차 우회전 후보8영상](docs/stage3-right-candidates-v2.md)을 별도 준비했으며 사용자 검수를 기다립니다.
 
 이 폴더는 어느 경로에 clone해도 동작하는 독립 Git 프로젝트다. 기본 경로는 `project.properties`, 머신별 외부 데이터
 경로는 git에서 제외되는 `project.local.properties`로 관리한다. 저장소 게시 절차와 제외 파일은
